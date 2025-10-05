@@ -1,0 +1,10 @@
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.Users"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m">
+    <Page title="Gerenciamento de Usuários">
+        <content>
+            <Title text="Conteúdo da Página de Usuários" class="sapUiSmallMargin"/>
+        </content>
+    </Page>
+</mvc:View>
