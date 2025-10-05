@@ -1,0 +1,10 @@
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.Overview"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m">
+    <Page title="Overview">
+        <content>
+            <Title text="Bem-vindo ao Cockpit!" class="sapUiSmallMargin"/>
+        </content>
+    </Page>
+</mvc:View>

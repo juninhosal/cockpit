@@ -1,7 +1,38 @@
-<mvc:View controllerName="com.alfa.cockpit.controller.App"
-    displayBlock="true"
-    xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m">
-    <App id="app">
-    </App>
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.App"
+        displayBlock="true"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m"
+        xmlns:tnt="sap.tnt">
+    <tnt:ToolPage id="toolPage">
+        <tnt:header>
+            <tnt:ToolHeader>
+                <Button
+                        icon="sap-icon://menu2"
+                        type="Transparent"
+                        press=".onMenuButtonPress"/>
+            </tnt:ToolHeader>
+        </tnt:header>
+        <tnt:sideContent>
+            <tnt:SideNavigation
+                    id="sideNavigation"
+                    selectedKey="overview"
+                    itemSelect=".onItemSelect">
+                <tnt:NavigationList>
+                    <tnt:NavigationListItem text="Overview" icon="sap-icon://org-chart" key="overview" />
+                    <tnt:NavigationListItem text="Security" icon="sap-icon://shield" key="security_root" expanded="false">
+                        <tnt:NavigationListItem text="Users" key="users" />
+                        <tnt:NavigationListItem text="Role Collections" key="role_collections" />
+                        <tnt:NavigationListItem text="Roles" key="roles" />
+                        <tnt:NavigationListItem text="Trust Configuration" key="trust" />
+                    </tnt:NavigationListItem>
+                </tnt:NavigationList>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+
+        <tnt:mainContents>
+            <NavContainer id="navContainer" />
+        </tnt:mainContents>
+
+    </tnt:ToolPage>
 </mvc:View>

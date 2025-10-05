@@ -63,28 +63,39 @@
     "routing": {
       "config": {
         "routerClass": "sap.m.routing.Router",
-        "controlAggregation": "pages",
-        "controlId": "app",
-        "transition": "slide",
-        "type": "View",
         "viewType": "XML",
-        "path": "com.alfa.cockpit.view",
         "async": true,
-        "viewPath": "com.alfa.cockpit.view"
+        "viewPath": "com.alfa.cockpit.view",
+        "controlId": "navContainer",
+        "controlAggregation": "pages",
+        "clearControlAggregation": false
       },
       "routes": [
         {
-          "name": "RouteCockpit",
-          "pattern": ":?query:",
+          "name": "overview",
+          "pattern": "",
           "target": [
-            "TargetCockpit"
+            "overview"
+          ]
+        },
+        {
+          "name": "users",
+          "pattern": "users",
+          "target": [
+            "users"
           ]
         }
       ],
       "targets": {
-        "TargetCockpit": {
-          "id": "Cockpit",
-          "name": "Cockpit"
+        "overview": {
+          "viewName": "Overview",
+          "viewId": "overview",
+          "viewLevel": 1
+        },
+        "users": {
+          "viewName": "Users",
+          "viewId": "users",
+          "viewLevel": 2
         }
       }
     },
