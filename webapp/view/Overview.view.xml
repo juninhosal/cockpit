@@ -1,10 +1,126 @@
 <mvc:View
         controllerName="com.alfa.cockpit.controller.Overview"
         xmlns:mvc="sap.ui.core.mvc"
-        xmlns="sap.m">
-    <Page title="Overview">
+        xmlns="sap.m"
+        xmlns:f="sap.ui.layout.form"
+        xmlns:l="sap.ui.layout"
+        xmlns:core="sap.ui.core">
+    <Page id="overviewPage" title="Subaccount: Dev - Overview" class="sapUiResponsiveContentPadding">
         <content>
-            <Title text="Bem-vindo ao Cockpit!" class="sapUiSmallMargin"/>
+            <SegmentedButton select=".onTabSelect" width="100%" class="sapUiSmallMarginBottom">
+                <items>
+                    <SegmentedButtonItem text="General" key="general">
+                        <customData>
+                            <core:CustomData key="targetId" value="generalPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                    <SegmentedButtonItem text="Cloud Foundry Environment" key="cf">
+                        <customData>
+                            <core:CustomData key="targetId" value="cfPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                    <SegmentedButtonItem text="Kyma Environment" key="kyma">
+                        <customData>
+                            <core:CustomData key="targetId" value="kymaPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                    <SegmentedButtonItem text="Entitlements" key="entitlements">
+                        <customData>
+                            <core:CustomData key="targetId" value="entitlementsPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                </items>
+            </SegmentedButton>
+
+            <VBox>
+                <Panel id="generalPanel" class="sapUiNoContentPadding sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="General"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <FlexBox wrap="Wrap" gutter="Small">
+                                <GenericTile class="sapUiTinyMargin" header="85" subheader="Entitlements" press="onTilePress">
+                                    <tileContent><TileContent><content><ImageContent src="sap-icon://request" /></content></TileContent></tileContent>
+                                </GenericTile>
+                                <GenericTile class="sapUiTinyMargin" header="1" subheader="Instances and Subscriptions" press="onTilePress">
+                                    <tileContent><TileContent><content><ImageContent src="sap-icon://add-coursebook" /></content></TileContent></tileContent>
+                                </GenericTile>
+                            </FlexBox>
+
+                            <f:SimpleForm layout="ResponsiveGridLayout"
+                                          labelSpanXL="2" labelSpanL="3" labelSpanM="4" labelSpanS="12"
+                                          columnsL="2" columnsXL="2">
+                                <f:content>
+                                    <Label text="Subdomain"/><Text text="dev-2cenmobr"/>
+                                    <Label text="Provider"/><Text text="Amazon Web Services (AWS)"/>
+                                    <Label text="Used for Production"/><Text text="No"/>
+                                    <Label text="Created By"/><Text text=""/>
+                                    <Label text="Tenant ID"/><Text text="e08c4c28-d0ac-4b8c-9d7c-6566a26fc285"/>
+                                    <Label text="Region"/><HBox><core:Icon src="sap-icon://flag" class="sapUiTinyMarginEnd"/><Text text="US East (VA) - AWS"/></HBox>
+                                    <Label text="Beta Features"/><Text text="Disabled"/>
+                                    <Label text="Created On"/><Text text="5 Oct 2025, 11:11:43 (GMT-03:00)"/>
+                                    <Label text="Subaccount ID"/><Text text="e08c4c28-d0ac-4b8c-9d7c-6566a26fc285"/>
+                                    <Label text="Environment"/><Text text="Multi-Environment"/>
+                                    <Label text="Modified On"/><Text text="5 Oct 2025, 11:11:56 (GMT-03:00)"/>
+                                </f:content>
+                            </f:SimpleForm>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <Panel id="cfPanel" class="sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="Cloud Foundry Environment"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Text text="You are currently not using Cloud Foundry capabilities." class="sapUiSmallMarginBottom"/>
+                            <Button text="Enable Cloud Foundry" type="Emphasized"/>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <Panel id="kymaPanel" class="sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="Kyma Environment"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Text text="You are currently not using Kyma capabilities." class="sapUiSmallMarginBottom"/>
+                            <Button text="Enable Kyma" type="Emphasized"/>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <Panel id="entitlementsPanel" expandable="false" class="sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar>
+                        <Toolbar>
+                            <Title text="Entitlements"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <content>
+                        <Table class="sapUiNoContentPadding">
+                            <columns>
+                                <Column><Text text="Service"/></Column>
+                                <Column><Text text="Plan"/></Column>
+                                <Column hAlign="End"><Text text="Quota Assignment"/></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem><cells><Text text="SAP Build Process Automation"/><Text text="free"/><Text text="1"/></cells></ColumnListItem>
+                                <ColumnListItem><cells><Text text="Cloud Transport Management"/><Text text="standard"/><Text text="1"/></cells></ColumnListItem>
+                                <ColumnListItem><cells><Text text="Authorization and Trust Management Service"/><Text text="application"/><Text text="1"/></cells></ColumnListItem>
+                            </items>
+                        </Table>
+                    </content>
+                </Panel>
+            </VBox>
         </content>
     </Page>
 </mvc:View>
