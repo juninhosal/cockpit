@@ -1,0 +1,38 @@
+<!-- 
+    ====================================================================================================================
+    Fragmento de Diálogo: Adicionar Role (AddRoleDialog.fragment.xml)
+    ====================================================================================================================
+    Este fragmento define um sap.m.TableSelectDialog, que é um diálogo reutilizável para selecionar um ou mais itens
+    de uma lista apresentada numa tabela.
+
+    - É usado na view `RolesCollections` para adicionar Roles existentes a uma Role Collection.
+    - A propriedade `multiSelect="true"` permite que o utilizador selecione várias Roles de uma vez.
+    - A agregação `items` é ligada a `{/Roles}`, preenchendo a tabela com todas as Roles disponíveis no serviço OData.
+    - Os eventos `confirm` e `cancel` são manipulados pelos métodos `onAddRoleDialogConfirm` e `onAddRoleDialogCancel`
+      no controller que instancia este fragmento (neste caso, `RolesCollections.controller.ts`).
+    ====================================================================================================================
+-->
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core">
+    <TableSelectDialog
+            id="addRoleDialog"
+            title="Add Roles"
+            multiSelect="true"
+            items="{/Roles}"
+            confirm=".onAddRoleDialogConfirm"
+            cancel=".onAddRoleDialogCancel">
+        <columns>
+            <Column><Text text="Name"/></Column>
+            <Column><Text text="Description"/></Column>
+        </columns>
+        <items>
+            <ColumnListItem>
+                <cells>
+                    <Text text="{name}"/>
+                    <Text text="{description}"/>
+                </cells>
+            </ColumnListItem>
+        </items>
+    </TableSelectDialog>
+</core:FragmentDefinition>

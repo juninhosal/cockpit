@@ -1,0 +1,64 @@
+<!-- 
+    ====================================================================================================================
+    View Principal da Aplicação (App.view.xml)
+    ====================================================================================================================
+    Esta view define a estrutura geral da aplicação utilizando o controle sap.tnt.ToolPage.
+    Ela contém:
+    - Um cabeçalho (ToolHeader) com um botão para expandir/recolher o menu lateral.
+    - Um menu de navegação lateral (SideNavigation) para navegar entre as diferentes seções da aplicação.
+    - Uma área de conteúdo principal (mainContents) que contém um NavContainer.
+    
+    O NavContainer com o id "navContainer" é o alvo do router. O router irá carregar as views correspondentes
+    (Overview, Users, Roles, etc.) dentro deste container com base na rota atual.
+    O controller associado (App.controller.ts) gere a lógica para a navegação e o botão do menu.
+    ====================================================================================================================
+-->
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.App"
+        displayBlock="true"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m"
+        xmlns:tnt="sap.tnt">
+
+    <!-- O ToolPage é o controle de layout principal que fornece a estrutura de cabeçalho, menu lateral e conteúdo. -->
+    <tnt:ToolPage id="toolPage">
+        <!-- Cabeçalho da aplicação -->
+        <tnt:header>
+            <tnt:ToolHeader>
+                <!-- Botão "hambúrguer" para mostrar/esconder o menu lateral. O evento 'press' chama onMenuButtonPress no controller. -->
+                <Button
+                        icon="sap-icon://menu2"
+                        type="Transparent"
+                        press=".onMenuButtonPress"/>
+                <!-- O título ou outros elementos do cabeçalho podem ser adicionados aqui -->
+            </tnt:ToolHeader>
+        </tnt:header>
+
+        <!-- Conteúdo da barra de navegação lateral -->
+        <tnt:sideContent>
+            <tnt:SideNavigation
+                    id="sideNavigation"
+                    selectedKey="overview" <!-- A chave do item selecionado por defeito -->
+                    itemSelect=".onItemSelect"> <!-- Evento disparado ao selecionar um item, chama onItemSelect no controller -->
+                <tnt:NavigationList>
+                    <!-- Item de navegação para a view Overview. A 'key' é usada pelo router para a navegação. -->
+                    <tnt:NavigationListItem text="Overview" icon="sap-icon://org-chart" key="overview" />
+                    
+                    <!-- Item de navegação expansível para a seção "Security". -->
+                    <tnt:NavigationListItem text="Security" icon="sap-icon://shield" key="security_root" expanded="false">
+                        <!-- Sub-itens de navegação. As 'keys' correspondem às rotas definidas no manifest.json -->
+                        <tnt:NavigationListItem text="Users" key="users" />
+                        <tnt:NavigationListItem text="Roles" key="roles" />
+                        <tnt:NavigationListItem text="Roles Collections" key="rolesCollections" />
+                    </tnt:NavigationListItem>
+                </tnt:NavigationList>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+
+        <!-- Área de conteúdo principal onde as views são carregadas -->
+        <tnt:mainContents>
+            <!-- O NavContainer é o controle que o router utiliza para colocar as views. Veja o target "app" no manifest.json. -->
+            <NavContainer id="navContainer" />
+        </tnt:mainContents>
+    </tnt:ToolPage>
+</mvc:View>

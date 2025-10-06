@@ -1,0 +1,37 @@
+<!-- 
+    ====================================================================================================================
+    Fragmento de Diálogo: Atribuir Role Collection (AssignRoleCollectionDialog.fragment.xml)
+    ====================================================================================================================
+    Este fragmento define um sap.m.TableSelectDialog para selecionar e atribuir uma ou mais Role Collections a um utilizador.
+
+    - É usado na view `Users` (na aba de detalhes de um utilizador) para associar Role Collections.
+    - A propriedade `multiSelect="true"` permite que o utilizador selecione várias Role Collections de uma vez.
+    - A lista de itens é preenchida a partir da entidade `/RoleCollections` do serviço OData.
+    - Os eventos `confirm` e `cancel` são manipulados pelos métodos `onAssignRoleCollectionDialogConfirm` e 
+      `onAssignRoleCollectionDialogCancel` no `Users.controller.ts`.
+    ====================================================================================================================
+-->
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core">
+    <TableSelectDialog
+            id="assignRoleCollectionDialog"
+            title="Assign Role Collections"
+            multiSelect="true"
+            items="{/RoleCollections}"
+            confirm=".onAssignRoleCollectionDialogConfirm"
+            cancel=".onAssignRoleCollectionDialogCancel">
+        <columns>
+            <Column><Text text="Name"/></Column>
+            <Column><Text text="Description"/></Column>
+        </columns>
+        <items>
+            <ColumnListItem>
+                <cells>
+                    <Text text="{name}"/>
+                    <Text text="{description}"/>
+                </cells>
+            </ColumnListItem>
+        </items>
+    </TableSelectDialog>
+</core:FragmentDefinition>

@@ -1,0 +1,93 @@
+<!-- 
+    ====================================================================================================================
+    View de Gestão de Roles (Roles.view.xml)
+    ====================================================================================================================
+    Esta view é responsável por exibir e gerir as Roles. Ela utiliza um sap.f.FlexibleColumnLayout para criar uma 
+    interface mestre-detalhe.
+
+    - A `beginColumnPages` (coluna da esquerda) contém a lista mestre de todas as Roles numa tabela.
+    - A `midColumnPages` (coluna do meio) exibe os detalhes da Role selecionada, permitindo a sua edição.
+
+    O controller associado (Roles.controller.ts) gere a lógica de navegação entre colunas, edição, criação e 
+    eliminação de Roles.
+    ====================================================================================================================
+-->
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.Roles"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns:f="sap.f"
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:form="sap.ui.layout.form">
+
+    <!-- O FlexibleColumnLayout gere a exibição das colunas. O seu layout (OneColumn, TwoColumns, etc.) é controlado pela propriedade /layout do modelo 'appView'. -->
+    <f:FlexibleColumnLayout id="fcl" layout="{appView>/layout}">
+
+        <!-- Coluna Mestre: Contém a lista de todas as Roles. -->
+        <f:beginColumnPages>
+            <Page title="Roles">
+                <content>
+                    <!-- A tabela exibe a lista de Roles. O evento 'itemPress' na tabela é usado para mostrar os detalhes. -->
+                    <Table id="rolesTable" items="{/Roles}" itemPress=".onListItemPress">
+                        <headerToolbar>
+                            <OverflowToolbar>
+                                <Title text="Roles"/>
+                                <ToolbarSpacer/>
+                                <!-- Botão para abrir o diálogo de criação de uma nova Role. -->
+                                <Button text="Create" type="Transparent" press=".onCreatePress"/>
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <columns>
+                            <Column><Text text="Name"/></Column>
+                            <Column><Text text="Description"/></Column>
+                            <Column hAlign="End"><Text text="Actions"/></Column>
+                        </columns>
+                        <items>
+                            <!-- Template para cada item da lista. O tipo 'Navigation' indica que o item é clicável. -->
+                            <ColumnListItem type="Navigation" press=".onListItemPress">
+                                <cells>
+                                    <Text text="{name}"/>
+                                    <Text text="{description}"/>
+                                    <!-- Botão para apagar a Role diretamente da lista. -->
+                                    <Button icon="sap-icon://delete" type="Transparent" press=".onDeletePress" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Page>
+        </f:beginColumnPages>
+
+        <!-- Coluna de Detalhe: Mostra os detalhes da Role selecionada. -->
+        <f:midColumnPages>
+            <Page id="roleDetail" title="{name}">
+                <headerContent>
+                    <!-- Botões de ação na barra de cabeçalho da página de detalhe. -->
+                    <!-- A visibilidade dos botões Edit, Save e Cancel é controlada pela propriedade /editMode do 'viewModel'. -->
+                    <Button icon="sap-icon://edit" text="Edit" type="Transparent" press=".onEditPress" visible="{= !${viewModel>/editMode}}"/>
+                    <Button text="Save" type="Emphasized" press=".onSavePress" visible="{= ${viewModel>/editMode}}"/>
+                    <Button text="Cancel" press=".onCancelPress" visible="{= ${viewModel>/editMode}}"/>
+                    <ToolbarSpacer/>
+                    <!-- Botões para controlar o layout (Ecrã inteiro, Fechar). -->
+                    <Button icon="{= ${appView>/layout} === 'MidColumnFullScreen' ? 'sap-icon://exit-full-screen' : 'sap-icon://full-screen' }" press=".onToggleFullScreen"/>
+                    <Button icon="sap-icon://decline" press=".onCloseDetail"/>
+                </headerContent>
+                <content>
+                    <!-- Formulário para exibir e editar os dados da Role. -->
+                    <form:SimpleForm editable="true" layout="ResponsiveGridLayout" class="sapUiResponsiveContentPadding">
+                        <!-- Campo Nome: Mostra um Text ou um Input dependendo do modo de edição. -->
+                        <Label text="Name"/>
+                        <Text text="{name}" visible="{= !${viewModel>/editMode}}"/>
+                        <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode}}"/>
+
+                        <!-- Campo Descrição: Mostra um Text ou um Input dependendo do modo de edição. -->
+                        <Label text="Description"/>
+                        <Text text="{description}" visible="{= !${viewModel>/editMode}}"/>
+                        <Input value="{mode: 'TwoWay', path: 'description'}" visible="{= ${viewModel>/editMode}}"/>
+                    </form:SimpleForm>
+                </content>
+            </Page>
+        </f:midColumnPages>
+
+    </f:FlexibleColumnLayout>
+</mvc:View>

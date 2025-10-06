@@ -1,0 +1,180 @@
+<!-- 
+    ====================================================================================================================
+    View de Gestão de Utilizadores (Users.view.xml)
+    ====================================================================================================================
+    Esta view gere a lista de utilizadores, permitindo a sua criação, edição, eliminação e a atribuição de Role Collections.
+    Utiliza um sap.f.FlexibleColumnLayout para a interface mestre-detalhe.
+
+    - A `beginColumnPages` (coluna mestre) contém a tabela de utilizadores com funcionalidades de pesquisa e ordenação.
+    - A `midColumnPages` (coluna de detalhe) usa um IconTabBar para separar os dados gerais do utilizador das suas
+      Role Collections atribuídas.
+
+    O controller associado (Users.controller.ts) implementa toda a lógica de interação.
+    ====================================================================================================================
+-->
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.Users"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns:f="sap.f"
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:form="sap.ui.layout.form">
+
+    <f:FlexibleColumnLayout id="fcl" layout="{appView>/layout}">
+
+        <!-- =================================== Coluna Mestre (Lista de Utilizadores) =================================== -->
+        <f:beginColumnPages>
+            <Page id="usersListPage" title="Users">
+                <content>
+                    <Table id="usersTable" inset="false" items="{/Users}">
+                        <headerToolbar>
+                            <OverflowToolbar>
+                                <Title text="Users" level="H2"/>
+                                <!-- Campo de pesquisa que filtra a lista por nome ou e-mail. -->
+                                <SearchField
+                                        id="searchField"
+                                        width="50%"
+                                        placeholder="Filtrar por nome ou e-mail..."
+                                        search=".onFilterUsers"
+                                        liveChange=".onFilterUsers" />
+                                <ToolbarSpacer/>
+                                <Button text="Create" type="Transparent" press=".onCreatePress" />
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <columns>
+                            <!-- Colunas da tabela. Os cabeçalhos são botões que permitem a ordenação. -->
+                            <!-- A propriedade a ser ordenada é passada para o controller via customData. -->
+                            <Column>
+                                <header>
+                                    <Button type="Transparent" text="User Name" press=".onSort">
+                                        <customData><core:CustomData key="sortProperty" value="name" /></customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column>
+                                <header>
+                                    <Button type="Transparent" text="E-Mail" press=".onSort">
+                                        <customData><core:CustomData key="sortProperty" value="email" /></customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column hAlign="Center">
+                                <header>
+                                    <Button type="Transparent" text="Status" press=".onSort">
+                                        <customData><core:CustomData key="sortProperty" value="status" /></customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column minScreenWidth="Tablet" demandIn="true">
+                                <header>
+                                    <Button type="Transparent" text="Last Updated" press=".onSort">
+                                        <customData><core:CustomData key="sortProperty" value="modifiedAt" /></customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column hAlign="End"><Text text="Actions" /></Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem type="Navigation" press=".onListItemPress">
+                                <cells>
+                                    <Text text="{name}" />
+                                    <Text text="{email}" />
+                                    <!-- O ObjectStatus mostra o estado do utilizador (Active/Inactive) com cores diferentes. -->
+                                    <ObjectStatus
+                                            text="{= ${status} === 'enable' ? 'Active' : 'Inactive' }"
+                                            state="{= ${status} === 'enable' ? 'Success' : 'Error' }" />
+                                    <!-- Formatação da data de modificação. -->
+                                    <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: { style: 'medium' }}" />
+                                    <Button icon="sap-icon://delete" type="Transparent" press=".onDeleteUserPress" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Page>
+        </f:beginColumnPages>
+
+        <!-- =================================== Coluna de Detalhe (Detalhes do Utilizador) =================================== -->
+        <f:midColumnPages>
+            <Page id="userDetail" title="{name}">
+                <headerContent>
+                    <!-- Botões de ação (Edit, Save, Cancel) cuja visibilidade é controlada pelo 'viewModel'. -->
+                    <Button icon="sap-icon://edit" text="Edit" type="Transparent" press=".onEditPress" visible="{= !${viewModel>/editMode} }" />
+                    <Button text="Save" type="Emphasized" press=".onSavePress" visible="{= ${viewModel>/editMode} }" />
+                    <Button text="Cancel" press=".onCancelPress" visible="{= ${viewModel>/editMode} }" />
+                    <ToolbarSpacer />
+                    <!-- Botões para controlo do layout (Ecrã Inteiro, Fechar). -->
+                    <Button
+                            icon="{= ${appView>/layout} === 'MidColumnFullScreen' ? 'sap-icon://exit-full-screen' : 'sap-icon://full-screen' }"
+                            tooltip="Expandir/Recolher"
+                            type="Transparent"
+                            press=".onToggleFullScreen" />
+                    <Button icon="sap-icon://decline" type="Transparent" press=".onCloseDetail" />
+                </headerContent>
+                <content>
+                    <!-- Abas para organizar a informação do utilizador. -->
+                    <IconTabBar class="sapUiResponsiveContentPadding">
+                        <items>
+                            <!-- Aba de Informações Gerais -->
+                            <IconTabFilter text="General">
+                                <form:SimpleForm editable="true" layout="ResponsiveGridLayout" class="sapUiResponsiveContentPadding">
+                                    <form:content>
+                                        <!-- Campos Name, E-Mail e Status. A visibilidade alterna entre Text e Input/Switch com base no modo de edição. -->
+                                        <Label text="Name" />
+                                        <Text text="{name}" visible="{= !${viewModel>/editMode} }" />
+                                        <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode} }" />
+
+                                        <Label text="E-Mail" />
+                                        <Text text="{email}" visible="{= !${viewModel>/editMode} }" />
+                                        <Input value="{mode: 'TwoWay', path: 'email'}" type="Email" visible="{= ${viewModel>/editMode} }" />
+
+                                        <Label text="Status" />
+                                        <ObjectStatus
+                                                text="{= ${status} === 'enable' ? 'Active' : 'Inactive' }"
+                                                state="{= ${status} === 'enable' ? 'Success' : 'Error' }"
+                                                visible="{= !${viewModel>/editMode} }" />
+                                        <Switch
+                                                state="{viewModel>/editStatus}" <!-- O estado do switch é ligado a uma propriedade separada no viewModel -->
+                                                type="AcceptReject"
+                                                visible="{= ${viewModel>/editMode} }" />
+                                    </form:content>
+                                </form:SimpleForm>
+                            </IconTabFilter>
+                            
+                            <!-- Aba de Role Collections Atribuídas -->
+                            <IconTabFilter text="Role Collections">
+                                <!-- A tabela é preenchida através da navegação 'navRoleCollections' e expande a entidade 'roleCollection' para obter os detalhes. -->
+                                <Table items="{path: 'navRoleCollections', parameters: {expand: 'roleCollection'}}">
+                                    <headerToolbar>
+                                        <OverflowToolbar>
+                                            <Title text="Assigned Role Collections"/>
+                                            <ToolbarSpacer/>
+                                            <!-- Botão para abrir o diálogo de atribuição de Role Collections. -->
+                                            <Button text="Add" press=".onAssignRoleCollectionPress"/>
+                                        </OverflowToolbar>
+                                    </headerToolbar>
+                                    <columns>
+                                        <Column><Text text="Name"/></Column>
+                                        <Column><Text text="Description"/></Column>
+                                        <Column hAlign="End"/>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{roleCollection/name}"/>
+                                                <Text text="{roleCollection/description}"/>
+                                                <!-- Botão para desatribuir a Role Collection. -->
+                                                <Button icon="sap-icon://delete" type="Transparent" press=".onUnassignRoleCollectionPress"/>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </IconTabFilter>
+                        </items>
+                    </IconTabBar>
+                </content>
+            </Page>
+        </f:midColumnPages>
+
+    </f:FlexibleColumnLayout>
+</mvc:View>

@@ -1,0 +1,126 @@
+<!-- 
+    ====================================================================================================================
+    View de Gestão de Role Collections (RolesCollections.view.xml)
+    ====================================================================================================================
+    Esta view permite a gestão de Role Collections, que são agrupamentos de Roles individuais.
+    A estrutura é de mestre-detalhe, usando um sap.f.FlexibleColumnLayout.
+
+    - A `beginColumnPages` (coluna mestre) mostra a lista de todas as Role Collections.
+    - A `midColumnPages` (coluna de detalhe) exibe os detalhes da coleção selecionada, incluindo uma lista de
+      Roles que pertencem a essa coleção.
+
+    O controller associado (RolesCollections.controller.ts) gere a lógica para criar, editar, apagar Role Collections
+    e para adicionar ou remover Roles de uma coleção.
+    ====================================================================================================================
+-->
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.RolesCollections"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns:f="sap.f"
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:form="sap.ui.layout.form">
+
+    <f:FlexibleColumnLayout id="fcl" layout="{appView>/layout}">
+
+        <!-- =================================== Coluna Mestre (Lista de Role Collections) =================================== -->
+        <f:beginColumnPages>
+            <Page title="Role Collections">
+                <content>
+                    <Table id="roleCollectionsTable" items="{/RoleCollections}">
+                        <headerToolbar>
+                            <OverflowToolbar>
+                                <Title text="Role Collections"/>
+                                <ToolbarSpacer/>
+                                <Button text="Create" type="Transparent" press=".onCreatePress"/>
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <columns>
+                            <Column><Text text="Name"/></Column>
+                            <Column><Text text="Description"/></Column>
+                            <Column hAlign="End"><Text text="Actions"/></Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem type="Navigation" press=".onListItemPress">
+                                <cells>
+                                    <Text text="{name}"/>
+                                    <Text text="{description}"/>
+                                    <Button
+                                            icon="sap-icon://delete"
+                                            type="Transparent"
+                                            press=".onDeleteRoleCollectionPress" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Page>
+        </f:beginColumnPages>
+
+        <!-- =================================== Coluna de Detalhe (Detalhes da Role Collection) =================================== -->
+        <f:midColumnPages>
+            <Page id="roleCollectionDetail" title="{name}">
+                <headerContent>
+                    <!-- Botões de ação (Edit, Save, Cancel) controlados pelo 'viewModel'. -->
+                    <Button icon="sap-icon://edit" text="Edit" type="Transparent" press=".onEditPress" visible="{= !${viewModel>/editMode}}"/>
+                    <Button text="Save" type="Emphasized" press=".onSavePress" visible="{= ${viewModel>/editMode}}"/>
+                    <Button text="Cancel" press=".onCancelPress" visible="{= ${viewModel>/editMode}}"/>
+                    <ToolbarSpacer/>
+                    <!-- Botões para controlo do layout (Ecrã Inteiro, Fechar). -->
+                    <Button
+                            icon="{= ${appView>/layout} === 'MidColumnFullScreen' ? 'sap-icon://exit-full-screen' : 'sap-icon://full-screen' }"
+                            press=".onToggleFullScreen"/>
+                    <Button icon="sap-icon://decline" press=".onCloseDetail"/>
+                </headerContent>
+                <content>
+                    <IconTabBar class="sapUiResponsiveContentPadding">
+                        <items>
+                            <!-- Aba de Informações Gerais -->
+                            <IconTabFilter text="General">
+                                <form:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                                    <Label text="Name"/>
+                                    <Text text="{name}" visible="{= !${viewModel>/editMode}}"/>
+                                    <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode}}"/>
+
+                                    <Label text="Description"/>
+                                    <Text text="{description}" visible="{= !${viewModel>/editMode}}"/>
+                                    <Input value="{mode: 'TwoWay', path: 'description'}" visible="{= ${viewModel>/editMode}}"/>
+                                </form:SimpleForm>
+                            </IconTabFilter>
+
+                            <!-- Aba de Roles Atribuídas -->
+                            <IconTabFilter text="Roles">
+                                <!-- A tabela é preenchida através da navegação 'navRoles'. -->
+                                <Table id="assignedRolesTable" items="{navRoles}">
+                                    <headerToolbar>
+                                        <OverflowToolbar>
+                                            <Title text="Assigned Roles"/>
+                                            <ToolbarSpacer/>
+                                            <!-- Botão para abrir o diálogo e adicionar novas roles a esta coleção. -->
+                                            <Button text="Add Role" press=".onAddRolePress"/>
+                                        </overflowToolbar>
+                                    </headerToolbar>
+                                    <columns>
+                                        <Column><Text text="Role Name"/></Column>
+                                        <Column hAlign="End"/>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <!-- O nome da Role é obtido através da navegação expandida: {role/name} -->
+                                                <Text text="{role/name}"/>
+                                                <!-- Botão para remover a associação da Role com esta coleção. -->
+                                                <Button icon="sap-icon://delete" type="Transparent" press=".onRemoveRolePress"/>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </IconTabFilter>
+                        </items>
+                    </IconTabBar>
+                </content>
+            </Page>
+        </f:midColumnPages>
+
+    </f:FlexibleColumnLayout>
+</mvc:View>

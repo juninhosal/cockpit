@@ -14,10 +14,19 @@ import Button from "sap/m/Button";
 
 /**
  * @namespace com.alfa.cockpit.controller
+ * @controller
+ * @name com.alfa.cockpit.controller.Roles
+ * @description Controller para a gestão de Roles. Utiliza um FlexibleColumnLayout para mostrar uma lista mestre e uma vista de detalhe.
  */
 export default class Roles extends Controller {
     private _oCreateDialog: Dialog;
 
+    /**
+     * @public
+     * @override
+     * @name onInit
+     * @description Inicializa o controller. Configura os modelos da view para o layout e o estado da view (modo de edição).
+     */
     public onInit(): void {
         const oView = this.getView();
         if (oView) {
@@ -26,6 +35,13 @@ export default class Roles extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onListItemPress
+     * @description Manipulador para o evento de clique num item da lista de roles.
+     * Mostra a coluna de detalhe com a informação da role selecionada.
+     * @param {sap.ui.base.Event} oEvent O evento de clique.
+     */
     public onListItemPress(oEvent: UI5Event): void {
         const sPath = (oEvent.getSource() as ListItemBase).getBindingContext()?.getPath();
         if (sPath) {
@@ -34,10 +50,20 @@ export default class Roles extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onCloseDetail
+     * @description Fecha a coluna de detalhe, voltando à vista de uma só coluna.
+     */
     public onCloseDetail(): void {
         (this.byId("fcl") as FlexibleColumnLayout).setLayout(LayoutType.OneColumn);
     }
 
+    /**
+     * @public
+     * @name onToggleFullScreen
+     * @description Alterna a coluna de detalhe entre o modo de ecrã inteiro e a vista de duas colunas.
+     */
     public onToggleFullScreen(): void {
         const oModel = this.getView()?.getModel("appView") as JSONModel;
         if (!oModel) return;
@@ -45,15 +71,30 @@ export default class Roles extends Controller {
         oModel.setProperty("/layout", sCurrentLayout === LayoutType.MidColumnFullScreen ? LayoutType.TwoColumnsMidExpanded : LayoutType.MidColumnFullScreen);
     }
 
+    /**
+     * @public
+     * @name onEditPress
+     * @description Ativa o modo de edição na vista de detalhe.
+     */
     public onEditPress(): void {
         (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", true);
     }
 
+    /**
+     * @public
+     * @name onCancelPress
+     * @description Cancela o modo de edição, revertendo quaisquer alterações no modelo OData e desativando o modo de edição.
+     */
     public onCancelPress(): void {
         (this.getView()?.getModel() as ODataModel)?.resetChanges();
         (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
     }
 
+    /**
+     * @public
+     * @name onSavePress
+     * @description Guarda as alterações feitas a uma role. Submete as alterações pendentes do modelo OData.
+     */
     public onSavePress(): void {
         const oView = this.getView();
         if (!oView) return;
@@ -72,6 +113,12 @@ export default class Roles extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onDeletePress
+     * @description Apaga a role selecionada após confirmação do utilizador.
+     * @param {sap.ui.base.Event} oEvent O evento de clique do botão de apagar.
+     */
     public onDeletePress(oEvent: UI5Event): void {
         const oContext = (oEvent.getSource() as Button).getBindingContext();
         if (!oContext) return;
@@ -94,6 +141,11 @@ export default class Roles extends Controller {
         });
     }
 
+    /**
+     * @public
+     * @name onCreatePress
+     * @description Abre um diálogo para a criação de uma nova role. Carrega o fragmento do diálogo se ainda não tiver sido carregado.
+     */
     public async onCreatePress(): Promise<void> {
         const oView = this.getView();
         if (!oView) return;
@@ -109,6 +161,11 @@ export default class Roles extends Controller {
         this._oCreateDialog.open();
     }
 
+    /**
+     * @public
+     * @name onSaveNewRole
+     * @description Guarda a nova role criada através do diálogo. Valida os campos e chama o método 'create' do modelo OData.
+     */
     public onSaveNewRole(): void {
         const oModel = this.getView()?.getModel() as ODataModel;
         const oNewData = (this._oCreateDialog.getModel("newRole") as JSONModel).getData();
@@ -127,6 +184,11 @@ export default class Roles extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onCancelNewRole
+     * @description Fecha o diálogo de criação de nova role.
+     */
     public onCancelNewRole(): void {
         this._oCreateDialog.close();
     }

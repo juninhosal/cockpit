@@ -1,0 +1,130 @@
+<!-- 
+    ====================================================================================================================
+    View de Visão Geral (Overview.view.xml)
+    ====================================================================================================================
+    Esta view serve como a página inicial ou painel de controlo da aplicação. Ela exibe um resumo das informações
+    da subconta em diferentes secções.
+
+    A principal característica de navegação desta página é o `SegmentedButton` no topo, que, em vez de navegar
+    para outras páginas, faz um scroll suave para o painel de informações correspondente na mesma página.
+    A lógica para este scroll é implementada no método `onTabSelect` do controller associado (Overview.controller.ts).
+
+    O conteúdo desta view é maioritariamente estático e serve como um exemplo de layout de um painel de controlo.
+    ====================================================================================================================
+-->
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.Overview"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m"
+        xmlns:f="sap.ui.layout.form"
+        xmlns:l="sap.ui.layout"
+        xmlns:core="sap.ui.core">
+    <Page id="overviewPage" title="Subaccount: Dev - Overview" class="sapUiResponsiveContentPadding">
+        <content>
+            <!-- Barra de navegação por separadores. O evento 'select' aciona o scroll para a secção correspondente. -->
+            <SegmentedButton select=".onTabSelect" width="100%" class="sapUiSmallMarginBottom">
+                <items>
+                    <!-- Cada item do botão tem um 'customData' com a chave 'targetId'. -->
+                    <!-- O valor de 'targetId' é o ID do Painel para o qual a página deve rolar. -->
+                    <SegmentedButtonItem text="General" key="general">
+                        <customData>
+                            <core:CustomData key="targetId" value="generalPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                    <SegmentedButtonItem text="Cloud Foundry Environment" key="cf">
+                        <customData>
+                            <core:CustomData key="targetId" value="cfPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                    <SegmentedButtonItem text="Kyma Environment" key="kyma">
+                        <customData>
+                            <core:CustomData key="targetId" value="kymaPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                    <SegmentedButtonItem text="Entitlements" key="entitlements">
+                        <customData>
+                            <core:CustomData key="targetId" value="entitlementsPanel" />
+                        </customData>
+                    </SegmentedButtonItem>
+                </items>
+            </SegmentedButton>
+
+            <!-- VBox para empilhar verticalmente os diferentes painéis de conteúdo. -->
+            <VBox>
+                <!-- =================================== Painel Geral =================================== -->
+                <Panel id="generalPanel" class="sapUiNoContentPadding sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar><Toolbar><Title text="General"/></Toolbar></headerToolbar>
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <!-- Tiles para mostrar informações de destaque (KPIs). -->
+                            <FlexBox wrap="Wrap" gutter="Small">
+                                <GenericTile class="sapUiTinyMargin" header="85" subheader="Entitlements" press="onTilePress"/>
+                                <GenericTile class="sapUiTinyMargin" header="1" subheader="Instances and Subscriptions" press="onTilePress"/>
+                            </FlexBox>
+
+                            <!-- Formulário para exibir detalhes da subconta em formato chave-valor. -->
+                            <f:SimpleForm layout="ResponsiveGridLayout"
+                                          labelSpanXL="2" labelSpanL="3" labelSpanM="4" labelSpanS="12"
+                                          columnsL="2" columnsXL="2">
+                                <f:content>
+                                    <Label text="Subdomain"/><Text text="dev-2cenmobr"/>
+                                    <Label text="Provider"/><Text text="Amazon Web Services (AWS)"/>
+                                    <Label text="Used for Production"/><Text text="No"/>
+                                    <Label text="Created By"/><Text text=""/>
+                                    <Label text="Tenant ID"/><Text text="e08c4c28-d0ac-4b8c-9d7c-6566a26fc285"/>
+                                    <Label text="Region"/><HBox><core:Icon src="sap-icon://flag" class="sapUiTinyMarginEnd"/><Text text="US East (VA) - AWS"/></HBox>
+                                    <Label text="Beta Features"/><Text text="Disabled"/>
+                                    <Label text="Created On"/><Text text="5 Oct 2025, 11:11:43 (GMT-03:00)"/>
+                                    <Label text="Subaccount ID"/><Text text="e08c4c28-d0ac-4b8c-9d7c-6566a26fc285"/>
+                                    <Label text="Environment"/><Text text="Multi-Environment"/>
+                                    <Label text="Modified On"/><Text text="5 Oct 2025, 11:11:56 (GMT-03:00)"/>
+                                </f:content>
+                            </f:SimpleForm>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- =================================== Painel Cloud Foundry =================================== -->
+                <Panel id="cfPanel" class="sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar><Toolbar><Title text="Cloud Foundry Environment"/></Toolbar></headerToolbar>
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Text text="You are currently not using Cloud Foundry capabilities." class="sapUiSmallMarginBottom"/>
+                            <Button text="Enable Cloud Foundry" type="Emphasized"/>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- =================================== Painel Kyma =================================== -->
+                <Panel id="kymaPanel" class="sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar><Toolbar><Title text="Kyma Environment"/></Toolbar></headerToolbar>
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Text text="You are currently not using Kyma capabilities." class="sapUiSmallMarginBottom"/>
+                            <Button text="Enable Kyma" type="Emphasized"/>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- =================================== Painel Entitlements =================================== -->
+                <Panel id="entitlementsPanel" expandable="false" class="sapUiSmallMarginBottom" backgroundDesign="Transparent">
+                    <headerToolbar><Toolbar><Title text="Entitlements"/></Toolbar></headerToolbar>
+                    <content>
+                        <Table class="sapUiNoContentPadding">
+                            <columns>
+                                <Column><Text text="Service"/></Column>
+                                <Column><Text text="Plan"/></Column>
+                                <Column hAlign="End"><Text text="Quota Assignment"/></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem><cells><Text text="SAP Build Process Automation"/><Text text="free"/><Text text="1"/></cells></ColumnListItem>
+                                <ColumnListItem><cells><Text text="Cloud Transport Management"/><Text text="standard"/><Text text="1"/></cells></ColumnListItem>
+                                <ColumnListItem><cells><Text text="Authorization and Trust Management Service"/><Text text="application"/><Text text="1"/></cells></ColumnListItem>
+                            </items>
+                        </Table>
+                    </content>
+                </Panel>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

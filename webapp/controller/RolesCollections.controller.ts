@@ -17,12 +17,21 @@ import Button from "sap/m/Button";
 
 /**
  * @namespace com.alfa.cockpit.controller
+ * @controller
+ * @name com.alfa.cockpit.controller.RolesCollections
+ * @description Controller para a gestão de Role Collections. Permite criar, editar, apagar e associar Roles a uma Role Collection.
  */
 export default class RolesCollections extends Controller {
 
     private _oCreateRoleCollectionDialog: Dialog;
     private _oAddRoleDialog: TableSelectDialog;
 
+    /**
+     * @public
+     * @override
+     * @name onInit
+     * @description Inicializa o controller, configurando os modelos da view para layout e estado de edição.
+     */
     public onInit(): void {
         const oView = this.getView();
         if (oView) {
@@ -31,12 +40,19 @@ export default class RolesCollections extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onListItemPress
+     * @description Manipula o clique num item da lista de Role Collections, mostrando os seus detalhes.
+     * @param {sap.ui.base.Event} oEvent O evento de clique.
+     */
     public onListItemPress(oEvent: UI5Event): void {
         const oItem = oEvent.getSource() as ListItemBase;
         const sPath = oItem.getBindingContext()?.getPath();
         if (sPath) {
             const oDetailColumn = this.byId("roleCollectionDetail") as Page;
             if (oDetailColumn) {
+                // Faz o binding do detalhe e expande a navegação para as roles associadas
                 oDetailColumn.bindElement({ path: sPath, parameters: { expand: "navRoles/role" } });
                 const oFCL = this.byId("fcl") as FlexibleColumnLayout;
                 oFCL.setLayout(LayoutType.TwoColumnsMidExpanded);
@@ -44,10 +60,20 @@ export default class RolesCollections extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onCloseDetail
+     * @description Fecha a coluna de detalhe.
+     */
     public onCloseDetail(): void {
         (this.byId("fcl") as FlexibleColumnLayout).setLayout(LayoutType.OneColumn);
     }
 
+    /**
+     * @public
+     * @name onToggleFullScreen
+     * @description Alterna a vista de detalhe entre ecrã inteiro e a vista normal.
+     */
     public onToggleFullScreen(): void {
         const oModel = this.getView()?.getModel("appView") as JSONModel;
         if (!oModel) return;
@@ -55,15 +81,30 @@ export default class RolesCollections extends Controller {
         oModel.setProperty("/layout", sCurrentLayout === LayoutType.MidColumnFullScreen ? LayoutType.TwoColumnsMidExpanded : LayoutType.MidColumnFullScreen);
     }
 
+    /**
+     * @public
+     * @name onEditPress
+     * @description Ativa o modo de edição para a Role Collection em detalhe.
+     */
     public onEditPress(): void {
         (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", true);
     }
 
+    /**
+     * @public
+     * @name onCancelPress
+     * @description Cancela o modo de edição, revertendo alterações.
+     */
     public onCancelPress(): void {
         (this.getView()?.getModel() as ODataModel)?.resetChanges();
         (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
     }
 
+    /**
+     * @public
+     * @name onSavePress
+     * @description Guarda as alterações feitas na Role Collection.
+     */
     public onSavePress(): void {
         const oView = this.getView();
         if (!oView) return;
@@ -83,6 +124,12 @@ export default class RolesCollections extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onDeleteRoleCollectionPress
+     * @description Apaga a Role Collection selecionada após confirmação.
+     * @param {sap.ui.base.Event} oEvent O evento de clique.
+     */
     public onDeleteRoleCollectionPress(oEvent: UI5Event): void {
         const oButton = oEvent.getSource() as Button;
         const oContext = oButton.getBindingContext();
@@ -108,6 +155,11 @@ export default class RolesCollections extends Controller {
         });
     }
 
+    /**
+     * @public
+     * @name onCreatePress
+     * @description Abre um diálogo para criar uma nova Role Collection.
+     */
     public async onCreatePress(): Promise<void> {
         const oView = this.getView();
         if (!oView) return;
@@ -124,6 +176,11 @@ export default class RolesCollections extends Controller {
         this._oCreateRoleCollectionDialog.open();
     }
 
+    /**
+     * @public
+     * @name onSaveNewRoleCollection
+     * @description Guarda a nova Role Collection criada no diálogo.
+     */
     public onSaveNewRoleCollection(): void {
         const oModel = this.getView()?.getModel() as ODataModel;
         const oNewData = (this._oCreateRoleCollectionDialog.getModel("newRoleCollection") as JSONModel).getData();
@@ -144,10 +201,20 @@ export default class RolesCollections extends Controller {
         }
     }
 
+    /**
+     * @public
+     * @name onCancelNewRoleCollection
+     * @description Fecha o diálogo de criação de nova Role Collection.
+     */
     public onCancelNewRoleCollection(): void {
         this._oCreateRoleCollectionDialog.close();
     }
 
+    /**
+     * @public
+     * @name onAddRolePress
+     * @description Abre um diálogo para adicionar Roles existentes a uma Role Collection.
+     */
     public async onAddRolePress(): Promise<void> {
         const oView = this.getView();
         if (!oView) return;
@@ -163,6 +230,12 @@ export default class RolesCollections extends Controller {
         this._oAddRoleDialog.open("");
     }
 
+    /**
+     * @public
+     * @name onAddRoleDialogConfirm
+     * @description Confirma a adição de Roles a uma Role Collection. Cria as associações.
+     * @param {any} oEvent O evento de confirmação do diálogo.
+     */
     public onAddRoleDialogConfirm(oEvent: any): void {
         const oView = this.getView();
         if (!oView) return;
@@ -189,9 +262,7 @@ export default class RolesCollections extends Controller {
         oModel.submitChanges({
             success: () => {
                 MessageToast.show(`${aSelectedContexts.length} role(s) adicionados.`);
-
                 (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
-
             },
             error: (oError: any) => {
                 MessageBox.error("Erro ao adicionar roles.");
@@ -200,8 +271,19 @@ export default class RolesCollections extends Controller {
         });
     }
 
+    /**
+     * @public
+     * @name onAddRoleDialogCancel
+     * @description Fecha o diálogo de adição de Roles.
+     */
     public onAddRoleDialogCancel(): void {}
 
+    /**
+     * @public
+     * @name onRemoveRolePress
+     * @description Remove uma Role de uma Role Collection.
+     * @param {sap.ui.base.Event} oEvent O evento de clique.
+     */
     public onRemoveRolePress(oEvent: UI5Event): void {
         const oContext = (oEvent.getSource() as ListItemBase).getBindingContext();
         if (!oContext) return;
