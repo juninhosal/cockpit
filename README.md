@@ -74,9 +74,9 @@ Distribuído sob a Licença MIT. Veja `LICENSE.txt` para mais informações.
 <!-- CONTACT -->
 ## Contato
 
-Seu Nome - [@seu_twitter](https://twitter.com/seu_twitter) - email@example.com
+Paulo de Tarso Salgado Junior - [@linkedin](https://www.linkedin.com/in/juniorsalgado/) - junior.salgado@outlook.com
 
-Link do Projeto: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+Link do Projeto: [https://github.com/juninhosal/cockpit#](https://github.com/juninhosal/cockpit#)
 
 
 <details>
