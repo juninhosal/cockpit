@@ -1,0 +1,30 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:f="sap.ui.layout.form">
+    <Dialog
+            id="createUserDialog"
+            title="Create New User">
+        <content>
+            <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                <Label text="Name" required="true" />
+                <Input id="nameInput" value="{newUser>/name}" required="true" />
+
+                <Label text="E-Mail" required="true" />
+                <Input id="emailInput" value="{newUser>/email}" type="Email" required="true" />
+
+                <Label text="Status" />
+                <Select id="statusSelect" selectedKey="{newUser>/status}">
+                    <core:Item key="enable" text="Enable" />
+                    <core:Item key="disable" text="Disable" />
+                </Select>
+            </f:SimpleForm>
+        </content>
+        <beginButton>
+            <Button text="Save" type="Emphasized" press=".onSaveUser" />
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press=".onCancelCreate" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
