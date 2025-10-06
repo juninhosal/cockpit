@@ -9,12 +9,6 @@
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
-    "resources": "resources.json",
-    "sourceTemplate": {
-      "id": "@sap/generator-fiori:basic",
-      "version": "1.19.0",
-      "toolsId": "fe3aefcc-2ed4-4b78-89d3-1159c346f691"
-    },
     "dataSources": {
       "mainService": {
         "uri": "/odata/v2/Catalog/",
@@ -25,59 +19,19 @@
       }
     }
   },
-  "sap.ui": {
-    "technology": "UI5",
-    "icons": {
-      "icon": "",
-      "favIcon": "",
-      "phone": "",
-      "phone@2": "",
-      "tablet": "",
-      "tablet@2": ""
-    },
-    "deviceTypes": {
-      "desktop": true,
-      "tablet": true,
-      "phone": true
-    }
-  },
   "sap.ui5": {
     "flexEnabled": true,
     "dependencies": {
       "minUI5Version": "1.141.0",
       "libs": {
         "sap.m": {},
-        "sap.ui.core": {}
+        "sap.ui.core": {},
+        "sap.f": {}
       }
-    },
-    "contentDensities": {
-      "compact": true,
-      "cozy": true
     },
     "models": {
-      "i18n": {
-        "type": "sap.ui.model.resource.ResourceModel",
-        "settings": {
-          "bundleName": "com.alfa.cockpit.i18n.i18n"
-        }
-      },
-      "": {
-        "dataSource": "mainService",
-        "preload": true,
-        "settings": {
-          "synchronizationMode": "None",
-          "operationMode": "Server",
-          "autoExpandSelect": true,
-          "earlyRequests": true
-        }
-      }
-    },
-    "resources": {
-      "css": [
-        {
-          "uri": "css/style.css"
-        }
-      ]
+      "i18n": { "type": "sap.ui.model.resource.ResourceModel", "settings": { "bundleName": "com.alfa.cockpit.i18n.i18n" } },
+      "": { "dataSource": "mainService", "preload": true, "settings": {} }
     },
     "routing": {
       "config": {
@@ -93,63 +47,22 @@
         {
           "name": "overview",
           "pattern": "",
-          "target": [
-            "overview"
-          ]
+          "target": "overview"
         },
         {
           "name": "users",
           "pattern": "users",
-          "target": [
-            "usersList"
-          ]
-        },
-        {
-          "name": "userDetail",
-          "pattern": "users/{userId}",
-          "target": [
-            "usersList",
-            "userDetail"
-          ]
-        },
-        {
-          "name": "roleDetail",
-          "pattern": "users/{userId}/role/{roleCollectionId}",
-          "target": [
-            "usersList",
-            "userDetail",
-            "roleDetail"
-          ]
+          "target": "users"
         }
       ],
       "targets": {
         "overview": {
           "viewName": "Overview",
-          "viewId": "overview",
           "viewLevel": 1
         },
         "users": {
           "viewName": "Users",
-          "viewId": "users",
           "viewLevel": 2
-        },
-        "usersList": {
-          "parent": "users",
-          "viewName": "UsersList",
-          "controlId": "fcl",
-          "controlAggregation": "beginColumnPages"
-        },
-        "userDetail": {
-          "parent": "users",
-          "viewName": "UserDetail",
-          "controlId": "fcl",
-          "controlAggregation": "midColumnPages"
-        },
-        "roleDetail": {
-          "parent": "users",
-          "viewName": "RoleDetail",
-          "controlId": "fcl",
-          "controlAggregation": "endColumnPages"
         }
       }
     },

@@ -2,9 +2,123 @@
         controllerName="com.alfa.cockpit.controller.Users"
         xmlns:mvc="sap.ui.core.mvc"
         xmlns:f="sap.f"
-        xmlns="sap.m">
-    <f:FlexibleColumnLayout
-            id="fcl"
-            layout="{/layout}"
-            backgroundDesign="Solid" />
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:form="sap.ui.layout.form">
+
+    <f:FlexibleColumnLayout id="fcl" layout="{appView>/layout}">
+
+        <f:beginColumnPages>
+            <Page id="usersListPage" title="Users">
+                <content>
+                    <Table id="usersTable" inset="false" items="{/Users}">
+                        <headerToolbar>
+                            <OverflowToolbar>
+                                <Title text="Users" level="H2"/>
+                                <SearchField
+                                        id="searchField"
+                                        width="50%"
+                                        placeholder="Filtrar por nome ou e-mail..."
+                                        search=".onFilterUsers"
+                                        liveChange=".onFilterUsers" />
+                                <ToolbarSpacer/>
+                                <Button text="Create" type="Transparent" press=".onCreatePress" />
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <columns>
+                            <Column>
+                                <header>
+                                    <Button type="Transparent" text="User Name" press=".onSort">
+                                        <customData>
+                                            <core:CustomData key="sortProperty" value="name" />
+                                        </customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column>
+                                <header>
+                                    <Button type="Transparent" text="E-Mail" press=".onSort">
+                                        <customData>
+                                            <core:CustomData key="sortProperty" value="email" />
+                                        </customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column hAlign="Center">
+                                <header>
+                                    <Button type="Transparent" text="Status" press=".onSort">
+                                        <customData>
+                                            <core:CustomData key="sortProperty" value="status" />
+                                        </customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column minScreenWidth="Tablet" demandIn="true">
+                                <header>
+                                    <Button type="Transparent" text="Last Updated" press=".onSort">
+                                        <customData>
+                                            <core:CustomData key="sortProperty" value="modifiedAt" />
+                                        </customData>
+                                    </Button>
+                                </header>
+                            </Column>
+                            <Column hAlign="End"><Text text="Actions" /></Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem type="Navigation" press=".onListItemPress">
+                                <cells>
+                                    <Text text="{name}" />
+                                    <Text text="{email}" />
+                                    <ObjectStatus
+                                            text="{= ${status} === 'enable' ? 'Active' : 'Inactive' }"
+                                            state="{= ${status} === 'enable' ? 'Success' : 'Error' }" />
+                                    <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: { style: 'medium' }}" />
+                                    <Button
+                                            icon="sap-icon://delete"
+                                            type="Transparent"
+                                            press=".onDeleteUserPress" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Page>
+        </f:beginColumnPages>
+
+        <f:midColumnPages>
+            <Page id="userDetail" title="{name}">
+                <headerContent>
+                    <Button icon="sap-icon://edit" text="Edit" type="Transparent" press=".onEditPress" visible="{= !${viewModel>/editMode} }" />
+                    <Button text="Save" type="Emphasized" press=".onSavePress" visible="{= ${viewModel>/editMode} }" />
+                    <Button text="Cancel" press=".onCancelPress" visible="{= ${viewModel>/editMode} }" />
+                    <ToolbarSpacer />
+                    <Button icon="sap-icon://decline" type="Transparent" press=".onCloseDetail" />
+                </headerContent>
+                <content>
+                    <form:SimpleForm editable="true" layout="ResponsiveGridLayout" class="sapUiResponsiveContentPadding">
+                        <form:content>
+                            <Label text="Name" />
+                            <Text text="{name}" visible="{= !${viewModel>/editMode} }" />
+                            <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode} }" />
+
+                            <Label text="E-Mail" />
+                            <Text text="{email}" visible="{= !${viewModel>/editMode} }" />
+                            <Input value="{mode: 'TwoWay', path: 'email'}" type="Email" visible="{= ${viewModel>/editMode} }" />
+
+                            <Label text="Status" />
+                            <ObjectStatus
+                                    text="{= ${status} === 'enable' ? 'Active' : 'Inactive' }"
+                                    state="{= ${status} === 'enable' ? 'Success' : 'Error' }"
+                                    visible="{= !${viewModel>/editMode} }" />
+                            <Switch
+                                    state="{viewModel>/editStatus}"
+                                    type="AcceptReject"
+                                    visible="{= ${viewModel>/editMode} }" />
+                        </form:content>
+                    </form:SimpleForm>
+                </content>
+            </Page>
+        </f:midColumnPages>
+
+    </f:FlexibleColumnLayout>
 </mvc:View>
