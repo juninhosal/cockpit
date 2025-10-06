@@ -190,8 +190,6 @@ export default class Roles extends Controller {
             success: () => {
                 MessageToast.show(`${aSelectedContexts.length} role(s) added.`);
 
-                // *** CORREÇÃO APLICADA AQUI ***
-                // Em vez de atualizar a tabela, atualizamos o 'binding' da página de detalhes inteira.
                 (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
 
             },

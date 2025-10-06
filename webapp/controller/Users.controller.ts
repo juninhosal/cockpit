@@ -20,6 +20,7 @@ import Fragment from "sap/ui/core/Fragment";
 import Dialog from "sap/m/Dialog";
 import Context from "sap/ui/model/Context";
 import formatter from "../model/formatter";
+import TableSelectDialog from "sap/m/TableSelectDialog";
 
 /**
  * @namespace com.alfa.cockpit.controller
@@ -29,18 +30,13 @@ export default class Users extends Controller {
     public formatter = formatter;
     private _oCreateUserDialog: Dialog;
     private _mSortState: { [key: string]: boolean | null } = {};
+    private _oAssignRoleCollectionDialog: TableSelectDialog;
 
     public onInit(): void {
         const oView = this.getView();
         if (oView) {
-            oView.setModel(new JSONModel({
-                layout: LayoutType.OneColumn
-            }), "appView");
-
-            oView.setModel(new JSONModel({
-                editMode: false,
-                editStatus: false
-            }), "viewModel");
+            oView.setModel(new JSONModel({ layout: LayoutType.OneColumn }), "appView");
+            oView.setModel(new JSONModel({ editMode: false, editStatus: false }), "viewModel");
         }
     }
 
@@ -57,7 +53,7 @@ export default class Users extends Controller {
 
             const oDetailColumn = this.byId("userDetail") as Page;
             if (oDetailColumn) {
-                oDetailColumn.bindElement(sPath);
+                oDetailColumn.bindElement({path: sPath, parameters: { expand: "navRoleCollections/roleCollection" }});
                 const oFCL = this.byId("fcl") as FlexibleColumnLayout;
                 oFCL.setLayout(LayoutType.TwoColumnsMidExpanded);
             }
@@ -65,15 +61,10 @@ export default class Users extends Controller {
     }
 
     public onCloseDetail(): void {
-        const oFCL = this.byId("fcl") as FlexibleColumnLayout;
-        oFCL.setLayout(LayoutType.OneColumn);
-        // Garante que sai do modo de edição ao fechar
+        (this.byId("fcl") as FlexibleColumnLayout).setLayout(LayoutType.OneColumn);
         (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
     }
 
-    /**
-     * *** NOVO MÉTODO PARA EXPANDIR/RECOLHER A TELA ***
-     */
     public onToggleFullScreen(): void {
         const oView = this.getView();
         if (!oView) return;
@@ -87,7 +78,6 @@ export default class Users extends Controller {
             oModel.setProperty("/layout", LayoutType.MidColumnFullScreen);
         }
     }
-
 
     public onEditPress(): void {
         const oView = this.getView();
@@ -139,7 +129,6 @@ export default class Users extends Controller {
         }
     }
 
-    // ... O resto dos seus métodos (onFilterUsers, onSort, etc.) continuam aqui ...
     public onFilterUsers(oEvent: UI5Event): void {
         const aFilters: Filter[] = [];
         const sQuery = (oEvent.getSource() as SearchField).getValue();
@@ -161,6 +150,7 @@ export default class Users extends Controller {
             oBinding.filter(aFilters);
         }
     }
+
     public onSort(oEvent: UI5Event): void {
         const oButton = oEvent.getSource() as Button;
         const sSortProperty = oButton.data("sortProperty") as string;
@@ -182,6 +172,7 @@ export default class Users extends Controller {
 
         if (oBinding) oBinding.sort(oSorter);
     }
+
     public onDeleteUserPress(oEvent: UI5Event): void {
         const oButton = oEvent.getSource() as Button;
         const oContext = oButton.getBindingContext();
@@ -207,6 +198,7 @@ export default class Users extends Controller {
             }
         });
     }
+
     public async onCreatePress(): Promise<void> {
         const oView = this.getView();
         if (!oView) {
@@ -224,6 +216,7 @@ export default class Users extends Controller {
         this._oCreateUserDialog.setModel(new JSONModel({ name: "", email: "", status: "enable" }), "newUser");
         this._oCreateUserDialog.open();
     }
+
     public onSaveUser(): void {
         const oNewUserData = (this._oCreateUserDialog.getModel("newUser") as JSONModel).getData();
 
@@ -245,28 +238,77 @@ export default class Users extends Controller {
             error: (oError: any) => MessageBox.error("Erro ao criar usuário.")
         });
     }
+
     public onCancelCreate(): void {
         this._oCreateUserDialog.close();
     }
 
-    public onAssignRoleCollectionPress(): void {
-        MessageBox.information("Funcionalidade para atribuir Role Collection ainda não implementada.");
+    public async onAssignRoleCollectionPress(): Promise<void> {
+        const oView = this.getView();
+        if (!oView) return;
+
+        if (!this._oAssignRoleCollectionDialog) {
+            this._oAssignRoleCollectionDialog = await Fragment.load({
+                id: oView.getId(),
+                name: "com.alfa.cockpit.view.fragment.AssignRoleCollectionDialog",
+                controller: this
+            }) as TableSelectDialog;
+            oView.addDependent(this._oAssignRoleCollectionDialog);
+        }
+        this._oAssignRoleCollectionDialog.open("");
     }
 
+    public onAssignRoleCollectionDialogConfirm(oEvent: any): void {
+        const oView = this.getView();
+        if (!oView) return;
+
+        const oModel = oView.getModel() as ODataModel;
+        const aSelectedContexts = oEvent.getParameter("selectedContexts") as Context[];
+        const oUserDetailContext = (this.byId("userDetail") as Page).getBindingContext();
+
+        // *** CORREÇÃO APLICADA AQUI ***
+        if (aSelectedContexts.length === 0 || !oUserDetailContext) {
+            return;
+        }
+
+        const sUserID = oUserDetailContext.getProperty("ID") as string;
+
+        aSelectedContexts.forEach(oContext => {
+            const sRoleCollectionID = oContext.getProperty("ID") as string;
+            const oPayload = {
+                user_ID: sUserID,
+                roleCollection_ID: sRoleCollectionID
+            };
+            oModel.create("/UserRoleCollections", oPayload);
+        });
+
+        oModel.submitChanges({
+            success: () => {
+                MessageToast.show("Role Collection(s) assigned.");
+                (this.byId("userDetail") as Page).getElementBinding()?.refresh();
+            },
+            error: (oError: any) => {
+                MessageBox.error("Error assigning Role Collection(s).");
+                oModel.resetChanges();
+            }
+        });
+    }
+
+    public onAssignRoleCollectionDialogCancel(): void {}
+
     public onUnassignRoleCollectionPress(oEvent: UI5Event): void {
-        const oListItem = oEvent.getSource() as ListItemBase;
-        const oContext = oListItem.getBindingContext();
+        const oContext = (oEvent.getSource() as ListItemBase).getBindingContext();
         if (!oContext) return;
 
         const sPath = oContext.getPath();
         const oModel = this.getView()?.getModel() as ODataModel;
 
-        MessageBox.confirm("Tem a certeza que quer remover esta Role Collection do usuário?", {
+        MessageBox.confirm("Are you sure you want to unassign this Role Collection?", {
             onClose: (sAction: string) => {
-                if (sAction === MessageBox.Action.OK) {
+                if (sAction === MessageBox.Action.OK && oModel) {
                     oModel.remove(sPath, {
-                        success: () => MessageToast.show("Atribuição removida com sucesso."),
-                        error: () => MessageBox.error("Falha ao remover atribuição.")
+                        success: () => MessageToast.show("Assignment removed."),
+                        error: (oError: any) => MessageBox.error("Error removing assignment.")
                     });
                 }
             }
