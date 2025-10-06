@@ -61,13 +61,13 @@ export default class Roles extends Controller {
         if (oModel.hasPendingChanges()) {
             oModel.submitChanges({
                 success: () => {
-                    MessageToast.show("Role saved.");
+                    MessageToast.show("Role salva com sucesso.");
                     (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
                 },
-                error: () => MessageBox.error("Failed to save changes.")
+                error: () => MessageBox.error("Falha ao salvar as alterações.")
             });
         } else {
-            MessageToast.show("No changes to save.");
+            MessageToast.show("Não existem alterações para salvar.");
             (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
         }
     }
@@ -79,15 +79,15 @@ export default class Roles extends Controller {
         const sName = oContext.getProperty("name") as string;
         const oModel = this.getView()?.getModel() as ODataModel;
 
-        MessageBox.confirm(`Are you sure you want to delete the Role "${sName}"?`, {
+        MessageBox.confirm(`Tem a certeza que quer apagar a Role "${sName}"?`, {
             onClose: (sAction: string) => {
                 if (sAction === MessageBox.Action.OK && oModel) {
                     oModel.remove(sPath, {
                         success: () => {
-                            MessageToast.show("Role deleted.");
+                            MessageToast.show("Role apagada com sucesso.");
                             this.onCloseDetail();
                         },
-                        error: () => MessageBox.error("Error deleting role.")
+                        error: () => MessageBox.error("Erro ao apagar a role.")
                     });
                 }
             }
@@ -113,16 +113,16 @@ export default class Roles extends Controller {
         const oModel = this.getView()?.getModel() as ODataModel;
         const oNewData = (this._oCreateDialog.getModel("newRole") as JSONModel).getData();
         if (!oNewData.name || !oNewData.description) {
-            MessageToast.show("Please fill all fields.");
+            MessageToast.show("Por favor, preencha todos os campos.");
             return;
         }
         if(oModel){
             oModel.create("/Roles", oNewData, {
                 success: () => {
-                    MessageToast.show("Role created successfully.");
+                    MessageToast.show("Role criada com sucesso.");
                     this.onCancelNewRole();
                 },
-                error: () => MessageBox.error("Error creating Role.")
+                error: () => MessageBox.error("Erro ao criar a Role.")
             });
         }
     }

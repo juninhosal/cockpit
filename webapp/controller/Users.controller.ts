@@ -284,11 +284,11 @@ export default class Users extends Controller {
 
         oModel.submitChanges({
             success: () => {
-                MessageToast.show("Role Collection(s) assigned.");
+                MessageToast.show("Role Collection(s) atribuída(s).");
                 (this.byId("userDetail") as Page).getElementBinding()?.refresh();
             },
             error: (oError: any) => {
-                MessageBox.error("Error assigning Role Collection(s).");
+                MessageBox.error("Erro ao atribuir a(s) Role Collection(s).");
                 oModel.resetChanges();
             }
         });
@@ -303,12 +303,12 @@ export default class Users extends Controller {
         const sPath = oContext.getPath();
         const oModel = this.getView()?.getModel() as ODataModel;
 
-        MessageBox.confirm("Are you sure you want to unassign this Role Collection?", {
+        MessageBox.confirm("Tem a certeza que quer desatribuir esta Role Collection?", {
             onClose: (sAction: string) => {
                 if (sAction === MessageBox.Action.OK && oModel) {
                     oModel.remove(sPath, {
-                        success: () => MessageToast.show("Assignment removed."),
-                        error: (oError: any) => MessageBox.error("Error removing assignment.")
+                        success: () => MessageToast.show("Atribuição removida."),
+                        error: (oError: any) => MessageBox.error("Erro ao remover a atribuição.")
                     });
                 }
             }

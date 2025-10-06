@@ -72,13 +72,13 @@ export default class RolesCollections extends Controller {
         if (oModel.hasPendingChanges()) {
             oModel.submitChanges({
                 success: () => {
-                    MessageToast.show("Role Collection guardada com sucesso.");
+                    MessageToast.show("Role Collection salva com sucesso.");
                     (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
                 },
-                error: (oError: any) => MessageBox.error("Falha ao guardar as alterações.")
+                error: (oError: any) => MessageBox.error("Falha ao salvar as alterações.")
             });
         } else {
-            MessageToast.show("Nenhuma alteração para guardar.");
+            MessageToast.show("Nenhuma alteração para salvar.");
             (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
         }
     }
@@ -129,17 +129,17 @@ export default class RolesCollections extends Controller {
         const oNewData = (this._oCreateRoleCollectionDialog.getModel("newRoleCollection") as JSONModel).getData();
 
         if (!oNewData.name || !oNewData.description) {
-            MessageToast.show("Please fill all fields.");
+            MessageToast.show("Por favor, preencha todos os campos.");
             return;
         }
 
         if(oModel){
             oModel.create("/RoleCollections", oNewData, {
                 success: () => {
-                    MessageToast.show("Role Collection created successfully.");
+                    MessageToast.show("Role Collection criada com sucesso.");
                     this.onCancelNewRoleCollection();
                 },
-                error: (oError: any) => MessageBox.error("Error creating Role Collection.")
+                error: (oError: any) => MessageBox.error("Erro ao criar a Role Collection.")
             });
         }
     }
@@ -188,13 +188,13 @@ export default class RolesCollections extends Controller {
 
         oModel.submitChanges({
             success: () => {
-                MessageToast.show(`${aSelectedContexts.length} role(s) added.`);
+                MessageToast.show(`${aSelectedContexts.length} role(s) adicionados.`);
 
                 (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
 
             },
             error: (oError: any) => {
-                MessageBox.error("Error adding roles.");
+                MessageBox.error("Erro ao adicionar roles.");
                 oModel.resetChanges(); // Reverte as criações que falharam
             }
         });
@@ -210,12 +210,12 @@ export default class RolesCollections extends Controller {
         const sRoleName = oContext.getProperty("role/name") as string;
         const oModel = this.getView()?.getModel() as ODataModel;
 
-        MessageBox.confirm(`Are you sure you want to remove the role "${sRoleName}" from this collection?`, {
+        MessageBox.confirm(`Tem a certeza que quer remover a role "${sRoleName}" desta coleção?`, {
             onClose: (sAction: string) => {
                 if (sAction === MessageBox.Action.OK && oModel) {
                     oModel.remove(sPath, {
-                        success: () => MessageToast.show("Role removed."),
-                        error: (oError: any) => MessageBox.error("Error removing role.")
+                        success: () => MessageToast.show("Role removida."),
+                        error: (oError: any) => MessageBox.error("Erro ao remover a role.")
                     });
                 }
             }
