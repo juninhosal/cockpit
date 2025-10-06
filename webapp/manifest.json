@@ -134,15 +134,21 @@
           "viewLevel": 2
         },
         "usersList": {
+          "parent": "users",
           "viewName": "UsersList",
+          "controlId": "fcl",
           "controlAggregation": "beginColumnPages"
         },
         "userDetail": {
+          "parent": "users",
           "viewName": "UserDetail",
+          "controlId": "fcl",
           "controlAggregation": "midColumnPages"
         },
         "roleDetail": {
+          "parent": "users",
           "viewName": "RoleDetail",
+          "controlId": "fcl",
           "controlAggregation": "endColumnPages"
         }
       }

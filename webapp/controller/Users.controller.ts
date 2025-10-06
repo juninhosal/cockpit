@@ -1,8 +1,9 @@
 import Controller from "sap/ui/core/mvc/Controller";
 import UIComponent from "sap/ui/core/UIComponent";
 import { Route$PatternMatchedEvent } from "sap/ui/core/routing/Route";
-import FlexibleColumnLayout from "sap/f/FlexibleColumnLayout";
 import JSONModel from "sap/ui/model/json/JSONModel";
+import View from "sap/ui/core/mvc/View";
+import Route from "sap/ui/core/routing/Route";
 
 /**
  * @namespace com.alfa.cockpit.controller
@@ -12,17 +13,27 @@ export default class Users extends Controller {
         const oViewModel = new JSONModel({
             layout: "OneColumn"
         });
-        this.getView().setModel(oViewModel, "appView");
+        // Adicionamos uma verificação para garantir que a View existe
+        const oView = this.getView();
+        if (oView) {
+            oView.setModel(oViewModel, "appView");
+        }
 
         const oRouter = (this.getOwnerComponent() as UIComponent).getRouter();
-        oRouter.getRoute("users").attachPatternMatched(this._onRouteMatched, this);
-        oRouter.getRoute("userDetail").attachPatternMatched(this._onRouteMatched, this);
-        oRouter.getRoute("roleDetail").attachPatternMatched(this._onRouteMatched, this);
+        // Verificamos se cada rota existe antes de anexar o evento
+        const usersRoute = oRouter.getRoute("users");
+        if(usersRoute) usersRoute.attachPatternMatched(this._onRouteMatched, this);
+
+        const userDetailRoute = oRouter.getRoute("userDetail");
+        if(userDetailRoute) userDetailRoute.attachPatternMatched(this._onRouteMatched, this);
+
+        const roleDetailRoute = oRouter.getRoute("roleDetail");
+        if(roleDetailRoute) roleDetailRoute.attachPatternMatched(this._onRouteMatched, this);
     }
 
     private _onRouteMatched(oEvent: Route$PatternMatchedEvent): void {
         const sRouteName = oEvent.getParameter("name");
-        let sLayout;
+        let sLayout: string;
 
         switch (sRouteName) {
             case "users":
@@ -39,6 +50,9 @@ export default class Users extends Controller {
                 break;
         }
 
-        (this.getView().getModel("appView") as JSONModel).setProperty("/layout", sLayout);
+        const oView = this.getView();
+        if (oView) {
+            (oView.getModel("appView") as JSONModel).setProperty("/layout", sLayout);
+        }
     }
 }
