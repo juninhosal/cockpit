@@ -1,41 +1,73 @@
 <mvc:View
         controllerName="com.alfa.cockpit.controller.UsersList"
         xmlns:mvc="sap.ui.core.mvc"
-        xmlns="sap.m">
-    <Page id="usersListPage" title="Users">
-        <content>
-            <Table
-                    id="usersTable"
-                    inset="false"
-                    items="{/Users}"
-                    itemPress=".onListItemPress">
-                <headerToolbar>
-                    <OverflowToolbar>
-                        <Title text="Users" level="H2"/>
-                        <ToolbarSpacer/>
-                        <Button text="Create" type="Transparent" press=".onCreatePress" />
-                    </OverflowToolbar>
-                </headerToolbar>
-                <columns>
-                    <Column><Text text="User Name" /></Column>
-                    <Column><Text text="E-Mail" /></Column>
-                    <Column minScreenWidth="Tablet" demandin="true"><Text text="Last Updated" /></Column>
-                    <Column hAlign="End"><Text text="" /></Column>
-                </columns>
-                <items>
-                    <ColumnListItem type="Navigation">
-                        <cells>
-                            <Text text="{name}" />
-                            <Text text="{email}" />
-                            <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: { style: 'medium' }}" />
-                            <Button
-                                    icon="sap-icon://delete"
-                                    type="Transparent"
-                                    press=".onDeleteUserPress" />
-                        </cells>
-                    </ColumnListItem>
-                </items>
-            </Table>
-        </content>
-    </Page>
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core">  <Page id="usersListPage" title="Users">
+    <content>
+        <Table
+                id="usersTable"
+                inset="false"
+                items="{/Users}"
+                itemPress=".onListItemPress">
+            <headerToolbar>
+                <OverflowToolbar>
+                    <Title text="Users" level="H2"/>
+                    <SearchField
+                            id="searchField"
+                            width="50%"
+                            placeholder="Filtrar por nome ou e-mail..."
+                            search=".onFilterUsers"
+                            liveChange=".onFilterUsers" />
+                    <ToolbarSpacer/>
+                    <Button text="Create" type="Transparent" press=".onCreatePress" />
+                </OverflowToolbar>
+            </headerToolbar>
+
+            <columns>
+                <Column>
+                    <header>
+                        <Button type="Transparent" text="User Name" press=".onSort">
+                            <customData>
+                                <core:CustomData key="sortProperty" value="name" />
+                            </customData>
+                        </Button>
+                    </header>
+                </Column>
+                <Column>
+                    <header>
+                        <Button type="Transparent" text="E-Mail" press=".onSort">
+                            <customData>
+                                <core:CustomData key="sortProperty" value="email" />
+                            </customData>
+                        </Button>
+                    </header>
+                </Column>
+                <Column minScreenWidth="Tablet" demandin="true">
+                    <header>
+                        <Button type="Transparent" text="Last Updated" press=".onSort">
+                            <customData>
+                                <core:CustomData key="sortProperty" value="modifiedAt" />
+                            </customData>
+                        </Button>
+                    </header>
+                </Column>
+                <Column hAlign="End"><Text text="" /></Column>
+            </columns>
+
+            <items>
+                <ColumnListItem type="Navigation">
+                    <cells>
+                        <Text text="{name}" />
+                        <Text text="{email}" />
+                        <Text text="{path: 'modifiedAt', type: 'sap.ui.model.type.DateTime', formatOptions: { style: 'medium' }}" />
+                        <Button
+                                icon="sap-icon://delete"
+                                type="Transparent"
+                                press=".onDeleteUserPress" />
+                    </cells>
+                </ColumnListItem>
+            </items>
+        </Table>
+    </content>
+</Page>
 </mvc:View>

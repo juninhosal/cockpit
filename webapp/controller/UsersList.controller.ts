@@ -11,13 +11,25 @@ import Dialog from "sap/m/Dialog";
 import JSONModel from "sap/ui/model/json/JSONModel";
 import View from "sap/ui/core/mvc/View";
 
+// --- Imports Adicionadas ---
+import Filter from "sap/ui/model/Filter";
+import FilterOperator from "sap/ui/model/FilterOperator";
+import SearchField from "sap/m/SearchField";
+import Sorter from "sap/ui/model/Sorter";
+import UI5Event from "sap/ui/base/Event";
+import Button from "sap/m/Button";
+import ListBinding from "sap/ui/model/ListBinding"; // <-- 1. IMPORT ADICIONADO
+
+
 /**
  * @namespace com.alfa.cockpit.controller
  */
 export default class UsersList extends Controller {
 
     private _oCreateUserDialog: Dialog;
+    private _mSortState: { [key: string]: boolean } = {};
 
+    // ... (Suas funções existentes: onListItemPress, onDeleteUserPress, etc. continuam iguais) ...
     public onListItemPress(oEvent: any): void {
         const oItem = oEvent.getSource() as ListItemBase;
         const oContext = oItem.getBindingContext();
@@ -63,9 +75,6 @@ export default class UsersList extends Controller {
         }
     }
 
-    /**
-     * Abre o dialog de criação de usuário.
-     */
     public async onCreatePress(): Promise<void> {
         const oView = this.getView();
         if (!oView) {
@@ -91,9 +100,6 @@ export default class UsersList extends Controller {
         this._oCreateUserDialog.open();
     }
 
-    /**
-     * Salva o novo usuário.
-     */
     public onSaveUser(): void {
         const oView = this.getView();
         if (!oView) {
@@ -126,19 +132,71 @@ export default class UsersList extends Controller {
         });
     }
 
-    /**
-     * Fecha o dialog de criação.
-     */
     public onCancelCreate(): void {
         this._oCreateUserDialog.close();
     }
 
-    /**
-     * Garante que o dialog seja destruído para evitar memory leaks.
-     */
+
+
     public onExit(): void {
         if (this._oCreateUserDialog) {
             this._oCreateUserDialog.destroy();
+        }
+    }
+
+
+    /**
+     * Filtra a lista de usuários com base na entrada do SearchField.
+     */
+    public onFilterUsers(oEvent: any): void {
+        const aFilters: Filter[] = [];
+        const sQuery = (oEvent.getSource() as SearchField).getValue();
+        const oTable = this.byId("usersTable") as Table;
+        // <-- 2. CAST PARA ListBinding
+        const oBinding = oTable.getBinding("items") as ListBinding;
+
+        if (sQuery && sQuery.length > 0) {
+            const oNameFilter = new Filter("name", FilterOperator.Contains, sQuery);
+            const oEmailFilter = new Filter("email", FilterOperator.Contains, sQuery);
+
+            const oCombinedFilter = new Filter({
+                filters: [oNameFilter, oEmailFilter],
+                and: false
+            });
+            aFilters.push(oCombinedFilter);
+        }
+
+        // <-- 3. VERIFICAÇÃO DE EXISTÊNCIA
+        if (oBinding) {
+            oBinding.filter(aFilters);
+        }
+    }
+
+    /**
+     * Ordena a tabela com base na coluna clicada.
+     * @param oEvent o evento do 'press'
+     */
+    public onSort(oEvent: UI5Event): void {
+        const oButton = oEvent.getSource() as Button;
+        const sSortProperty = oButton.data("sortProperty") as string;
+        const oTable = this.byId("usersTable") as Table;
+        // <-- 2. CAST PARA ListBinding
+        const oBinding = oTable.getBinding("items") as ListBinding;
+
+        const bDescending = this._mSortState[sSortProperty] === false;
+        this._mSortState[sSortProperty] = bDescending;
+
+        Object.keys(this._mSortState).forEach(key => {
+            if (key !== sSortProperty) {
+                delete this._mSortState[key];
+            }
+        });
+
+        const oSorter = new Sorter(sSortProperty, bDescending);
+
+        // <-- 3. VERIFICAÇÃO DE EXISTÊNCIA
+        if (oBinding) {
+            oBinding.sort(oSorter);
         }
     }
 }
