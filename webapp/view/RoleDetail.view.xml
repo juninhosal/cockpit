@@ -1,0 +1,37 @@
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.RoleDetail"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m">
+    <Page id="roleDetail" showHeader="true" title="{roleCollection/name}">
+        <headerContent>
+            <Button
+                    icon="{= ${appView>/layout} === 'ThreeColumnsMidExpanded' ? 'sap-icon://full-screen' : 'sap-icon://exit-full-screen'}"
+                    type="Transparent"
+                    press=".handleFullScreen" />
+            <Button
+                    icon="sap-icon://decline"
+                    type="Transparent"
+                    press=".handleClose" />
+        </headerContent>
+        <content>
+            <Table
+                    id="rolesTable"
+                    class="sapUiResponsiveMargin"
+                    headerText="Roles"
+                    items="{roleCollection/navRoles}">
+                <columns>
+                    <Column><Text text="Role Name" /></Column>
+                    <Column><Text text="Description" /></Column>
+                </columns>
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Text text="{role/name}" />
+                            <Text text="{role/description}" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+    </Page>
+</mvc:View>

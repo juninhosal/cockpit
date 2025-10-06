@@ -29,10 +29,8 @@
                 </tnt:NavigationList>
             </tnt:SideNavigation>
         </tnt:sideContent>
-
         <tnt:mainContents>
             <NavContainer id="navContainer" />
         </tnt:mainContents>
-
     </tnt:ToolPage>
 </mvc:View>

@@ -1,10 +1,10 @@
 <mvc:View
         controllerName="com.alfa.cockpit.controller.Users"
         xmlns:mvc="sap.ui.core.mvc"
+        xmlns:f="sap.f"
         xmlns="sap.m">
-    <Page title="Users">
-        <content>
-            <Title text="MEU CU" class="sapUiSmallMargin"/>
-        </content>
-    </Page>
+    <f:FlexibleColumnLayout
+            id="fcl"
+            layout="{/layout}"
+            backgroundDesign="Solid" />
 </mvc:View>

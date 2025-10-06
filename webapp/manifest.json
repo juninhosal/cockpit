@@ -51,6 +51,25 @@
         "settings": {
           "bundleName": "com.alfa.cockpit.i18n.i18n"
         }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "synchronizationMode": "None",
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "dataSources": {
+        "mainService": {
+          "uri": "/odata/v2/Catalog/",
+          "type": "OData",
+          "settings": {
+            "odataVersion": "2.0"
+          }
+        }
       }
     },
     "resources": {
@@ -82,7 +101,24 @@
           "name": "users",
           "pattern": "users",
           "target": [
-            "users"
+            "usersList"
+          ]
+        },
+        {
+          "name": "userDetail",
+          "pattern": "users/{userId}",
+          "target": [
+            "usersList",
+            "userDetail"
+          ]
+        },
+        {
+          "name": "roleDetail",
+          "pattern": "users/{userId}/role/{roleCollectionId}",
+          "target": [
+            "usersList",
+            "userDetail",
+            "roleDetail"
           ]
         }
       ],
@@ -96,6 +132,18 @@
           "viewName": "Users",
           "viewId": "users",
           "viewLevel": 2
+        },
+        "usersList": {
+          "viewName": "UsersList",
+          "controlAggregation": "beginColumnPages"
+        },
+        "userDetail": {
+          "viewName": "UserDetail",
+          "controlAggregation": "midColumnPages"
+        },
+        "roleDetail": {
+          "viewName": "RoleDetail",
+          "controlAggregation": "endColumnPages"
         }
       }
     },
