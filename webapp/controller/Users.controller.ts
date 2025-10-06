@@ -18,15 +18,15 @@ import FilterOperator from "sap/ui/model/FilterOperator";
 import SearchField from "sap/m/SearchField";
 import Fragment from "sap/ui/core/Fragment";
 import Dialog from "sap/m/Dialog";
-import Context from "sap/ui/model/Context"; // Import adicional necessário
-import formatter from "../model/formatter"; // Import do seu formatter
+import Context from "sap/ui/model/Context";
+import formatter from "../model/formatter";
 
 /**
  * @namespace com.alfa.cockpit.controller
  */
 export default class Users extends Controller {
 
-    public formatter = formatter; // Disponibiliza o formatter para a View
+    public formatter = formatter;
     private _oCreateUserDialog: Dialog;
     private _mSortState: { [key: string]: boolean | null } = {};
 
@@ -39,7 +39,7 @@ export default class Users extends Controller {
 
             oView.setModel(new JSONModel({
                 editMode: false,
-                editStatus: false // Propriedade para controlar o Switch
+                editStatus: false
             }), "viewModel");
         }
     }
@@ -52,7 +52,6 @@ export default class Users extends Controller {
 
         if (sPath && oContext && oView) {
             const oUser = oContext.getObject() as { status: string };
-            // Define o estado inicial do Switch no viewModel
             const oViewModel = oView.getModel("viewModel") as JSONModel;
             oViewModel.setProperty("/editStatus", this.formatter.statusToBoolean(oUser.status));
 
@@ -65,6 +64,31 @@ export default class Users extends Controller {
         }
     }
 
+    public onCloseDetail(): void {
+        const oFCL = this.byId("fcl") as FlexibleColumnLayout;
+        oFCL.setLayout(LayoutType.OneColumn);
+        // Garante que sai do modo de edição ao fechar
+        (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
+    }
+
+    /**
+     * *** NOVO MÉTODO PARA EXPANDIR/RECOLHER A TELA ***
+     */
+    public onToggleFullScreen(): void {
+        const oView = this.getView();
+        if (!oView) return;
+
+        const oModel = oView.getModel("appView") as JSONModel;
+        const sCurrentLayout = oModel.getProperty("/layout") as string;
+
+        if (sCurrentLayout === LayoutType.MidColumnFullScreen) {
+            oModel.setProperty("/layout", LayoutType.TwoColumnsMidExpanded);
+        } else {
+            oModel.setProperty("/layout", LayoutType.MidColumnFullScreen);
+        }
+    }
+
+
     public onEditPress(): void {
         const oView = this.getView();
         if (!oView) return;
@@ -73,7 +97,6 @@ export default class Users extends Controller {
         if (oContext) {
             const oUser = oContext.getObject() as { status: string };
             const oViewModel = oView.getModel("viewModel") as JSONModel;
-            // Garante que o Switch tenha o valor correto ao entrar em modo de edição
             oViewModel.setProperty("/editStatus", this.formatter.statusToBoolean(oUser.status));
             oViewModel.setProperty("/editMode", true);
         }
@@ -95,7 +118,6 @@ export default class Users extends Controller {
         const oViewModel = oView.getModel("viewModel") as JSONModel;
         const oContext = (this.byId("userDetail") as Page)?.getBindingContext();
 
-        // **LÓGICA CORRIGIDA**: Atualiza o modelo OData com o valor do Switch antes de salvar
         if (oContext) {
             const sPath = oContext.getPath();
             const bStatus = oViewModel.getProperty("/editStatus");
@@ -117,12 +139,7 @@ export default class Users extends Controller {
         }
     }
 
-    // --- O resto dos seus métodos (onCloseDetail, onFilterUsers, onSort, onDeleteUserPress, etc.) continuam aqui ---
-    // ... (cole aqui o resto dos métodos do controller anterior, eles não precisam de alteração) ...
-    public onCloseDetail(): void {
-        const oFCL = this.byId("fcl") as FlexibleColumnLayout;
-        oFCL.setLayout(LayoutType.OneColumn);
-    }
+    // ... O resto dos seus métodos (onFilterUsers, onSort, etc.) continuam aqui ...
     public onFilterUsers(oEvent: UI5Event): void {
         const aFilters: Filter[] = [];
         const sQuery = (oEvent.getSource() as SearchField).getValue();
@@ -230,5 +247,29 @@ export default class Users extends Controller {
     }
     public onCancelCreate(): void {
         this._oCreateUserDialog.close();
+    }
+
+    public onAssignRoleCollectionPress(): void {
+        MessageBox.information("Funcionalidade para atribuir Role Collection ainda não implementada.");
+    }
+
+    public onUnassignRoleCollectionPress(oEvent: UI5Event): void {
+        const oListItem = oEvent.getSource() as ListItemBase;
+        const oContext = oListItem.getBindingContext();
+        if (!oContext) return;
+
+        const sPath = oContext.getPath();
+        const oModel = this.getView()?.getModel() as ODataModel;
+
+        MessageBox.confirm("Tem a certeza que quer remover esta Role Collection do usuário?", {
+            onClose: (sAction: string) => {
+                if (sAction === MessageBox.Action.OK) {
+                    oModel.remove(sPath, {
+                        success: () => MessageToast.show("Atribuição removida com sucesso."),
+                        error: () => MessageBox.error("Falha ao remover atribuição.")
+                    });
+                }
+            }
+        });
     }
 }

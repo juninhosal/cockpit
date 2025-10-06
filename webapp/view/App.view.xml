@@ -22,9 +22,7 @@
                     <tnt:NavigationListItem text="Overview" icon="sap-icon://org-chart" key="overview" />
                     <tnt:NavigationListItem text="Security" icon="sap-icon://shield" key="security_root" expanded="false">
                         <tnt:NavigationListItem text="Users" key="users" />
-                        <tnt:NavigationListItem text="Role Collections" key="role_collections" />
                         <tnt:NavigationListItem text="Roles" key="roles" />
-                        <tnt:NavigationListItem text="Trust Configuration" key="trust" />
                     </tnt:NavigationListItem>
                 </tnt:NavigationList>
             </tnt:SideNavigation>

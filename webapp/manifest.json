@@ -26,7 +26,8 @@
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
-        "sap.f": {}
+        "sap.f": {},
+        "sap.ui.layout": {}
       }
     },
     "models": {
@@ -53,6 +54,11 @@
           "name": "users",
           "pattern": "users",
           "target": "users"
+        },
+        {
+          "name": "roles",
+          "pattern": "roles",
+          "target": "roles"
         }
       ],
       "targets": {
@@ -62,6 +68,10 @@
         },
         "users": {
           "viewName": "Users",
+          "viewLevel": 2
+        },
+        "roles": {
+          "viewName": "Roles",
           "viewLevel": 2
         }
       }

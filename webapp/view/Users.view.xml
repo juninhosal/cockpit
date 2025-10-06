@@ -92,30 +92,66 @@
                     <Button text="Save" type="Emphasized" press=".onSavePress" visible="{= ${viewModel>/editMode} }" />
                     <Button text="Cancel" press=".onCancelPress" visible="{= ${viewModel>/editMode} }" />
                     <ToolbarSpacer />
+                    <Button
+                            icon="{= ${appView>/layout} === 'MidColumnFullScreen' ? 'sap-icon://exit-full-screen' : 'sap-icon://full-screen' }"
+                            tooltip="Expandir/Recolher"
+                            type="Transparent"
+                            press=".onToggleFullScreen" />
                     <Button icon="sap-icon://decline" type="Transparent" press=".onCloseDetail" />
                 </headerContent>
                 <content>
-                    <form:SimpleForm editable="true" layout="ResponsiveGridLayout" class="sapUiResponsiveContentPadding">
-                        <form:content>
-                            <Label text="Name" />
-                            <Text text="{name}" visible="{= !${viewModel>/editMode} }" />
-                            <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode} }" />
+                    <IconTabBar class="sapUiResponsiveContentPadding">
+                        <items>
+                            <IconTabFilter text="General">
+                                <form:SimpleForm editable="true" layout="ResponsiveGridLayout" class="sapUiResponsiveContentPadding">
+                                    <form:content>
+                                        <Label text="Name" />
+                                        <Text text="{name}" visible="{= !${viewModel>/editMode} }" />
+                                        <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode} }" />
 
-                            <Label text="E-Mail" />
-                            <Text text="{email}" visible="{= !${viewModel>/editMode} }" />
-                            <Input value="{mode: 'TwoWay', path: 'email'}" type="Email" visible="{= ${viewModel>/editMode} }" />
+                                        <Label text="E-Mail" />
+                                        <Text text="{email}" visible="{= !${viewModel>/editMode} }" />
+                                        <Input value="{mode: 'TwoWay', path: 'email'}" type="Email" visible="{= ${viewModel>/editMode} }" />
 
-                            <Label text="Status" />
-                            <ObjectStatus
-                                    text="{= ${status} === 'enable' ? 'Active' : 'Inactive' }"
-                                    state="{= ${status} === 'enable' ? 'Success' : 'Error' }"
-                                    visible="{= !${viewModel>/editMode} }" />
-                            <Switch
-                                    state="{viewModel>/editStatus}"
-                                    type="AcceptReject"
-                                    visible="{= ${viewModel>/editMode} }" />
-                        </form:content>
-                    </form:SimpleForm>
+                                        <Label text="Status" />
+                                        <ObjectStatus
+                                                text="{= ${status} === 'enable' ? 'Active' : 'Inactive' }"
+                                                state="{= ${status} === 'enable' ? 'Success' : 'Error' }"
+                                                visible="{= !${viewModel>/editMode} }" />
+                                        <Switch
+                                                state="{viewModel>/editStatus}"
+                                                type="AcceptReject"
+                                                visible="{= ${viewModel>/editMode} }" />
+                                    </form:content>
+                                </form:SimpleForm>
+                            </IconTabFilter>
+                            <IconTabFilter text="Role Collections">
+                                <Table items="{path: 'navRoleCollections', parameters: {expand: 'roleCollection'}}">
+                                    <headerToolbar>
+                                        <OverflowToolbar>
+                                            <Title text="Assigned Role Collections"/>
+                                            <ToolbarSpacer/>
+                                            <Button text="Add" press=".onAssignRoleCollectionPress"/>
+                                        </OverflowToolbar>
+                                    </headerToolbar>
+                                    <columns>
+                                        <Column><Text text="Name"/></Column>
+                                        <Column><Text text="Description"/></Column>
+                                        <Column hAlign="End"/>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{roleCollection/name}"/>
+                                                <Text text="{roleCollection/description}"/>
+                                                <Button icon="sap-icon://delete" type="Transparent" press=".onUnassignRoleCollectionPress"/>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </IconTabFilter>
+                        </items>
+                    </IconTabBar>
                 </content>
             </Page>
         </f:midColumnPages>
