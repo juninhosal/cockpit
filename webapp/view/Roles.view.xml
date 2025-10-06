@@ -19,13 +19,11 @@
                                 <Button text="Create" type="Transparent" press=".onCreatePress"/>
                             </OverflowToolbar>
                         </headerToolbar>
-
                         <columns>
                             <Column><Text text="Name"/></Column>
                             <Column><Text text="Description"/></Column>
                             <Column hAlign="End"><Text text="Actions"/></Column>
                         </columns>
-
                         <items>
                             <ColumnListItem type="Navigation" press=".onListItemPress">
                                 <cells>

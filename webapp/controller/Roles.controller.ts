@@ -66,21 +66,46 @@ export default class Roles extends Controller {
 
     public onSavePress(): void {
         const oView = this.getView();
-        if (!oView) return; // CORREÇÃO 1: Verificação no início
+        if (!oView) return;
 
         const oModel = oView.getModel() as ODataModel;
         if (oModel.hasPendingChanges()) {
             oModel.submitChanges({
                 success: () => {
-                    MessageToast.show("Role Collection saved.");
+                    MessageToast.show("Role Collection guardada com sucesso.");
                     (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
                 },
-                error: (oError: any) => MessageBox.error("Failed to save changes.")
+                error: (oError: any) => MessageBox.error("Falha ao guardar as alterações.")
             });
         } else {
-            MessageToast.show("No changes to save.");
+            MessageToast.show("Nenhuma alteração para guardar.");
             (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
         }
+    }
+
+    public onDeleteRoleCollectionPress(oEvent: UI5Event): void {
+        const oButton = oEvent.getSource() as Button;
+        const oContext = oButton.getBindingContext();
+        if (!oContext) return;
+
+        const sPath = oContext.getPath();
+        const sName = oContext.getProperty("name") as string;
+        const oModel = this.getView()?.getModel() as ODataModel;
+
+        MessageBox.confirm(`Tem a certeza que quer apagar a Role Collection "${sName}"?`, {
+            title: "Confirmar Exclusão",
+            onClose: (sAction: string) => {
+                if (sAction === MessageBox.Action.OK && oModel) {
+                    oModel.remove(sPath, {
+                        success: () => {
+                            MessageToast.show("Role Collection apagada com sucesso.");
+                            this.onCloseDetail(); // Fecha o detalhe, já que o item não existe mais
+                        },
+                        error: (oError: any) => MessageBox.error("Erro ao apagar a Role Collection.")
+                    });
+                }
+            }
+        });
     }
 
     public async onCreatePress(): Promise<void> {
@@ -111,7 +136,7 @@ export default class Roles extends Controller {
         if(oModel){
             oModel.create("/RoleCollections", oNewData, {
                 success: () => {
-                    MessageToast.show("Role Collection criada com sucesso");
+                    MessageToast.show("Role Collection created successfully.");
                     this.onCancelNewRoleCollection();
                 },
                 error: (oError: any) => MessageBox.error("Error creating Role Collection.")
@@ -135,11 +160,9 @@ export default class Roles extends Controller {
             }) as TableSelectDialog;
             oView.addDependent(this._oAddRoleDialog);
         }
-        // CORREÇÃO 2: Passar string vazia para o método open()
         this._oAddRoleDialog.open("");
     }
 
-    // CORREÇÃO 3: Alterado o tipo do evento para 'any'
     public onAddRoleDialogConfirm(oEvent: any): void {
         const oView = this.getView();
         if (!oView) return;
@@ -166,11 +189,16 @@ export default class Roles extends Controller {
         oModel.submitChanges({
             success: () => {
                 MessageToast.show(`${aSelectedContexts.length} role(s) added.`);
-                // CORREÇÃO 4: Atualizar o binding da tabela
-                const oTable = this.byId("assignedRolesTable") as Table;
-                oTable.getBinding("items")?.refresh();
+
+                // *** CORREÇÃO APLICADA AQUI ***
+                // Em vez de atualizar a tabela, atualizamos o 'binding' da página de detalhes inteira.
+                (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
+
             },
-            error: (oError: any) => MessageBox.error("Error adding roles.")
+            error: (oError: any) => {
+                MessageBox.error("Error adding roles.");
+                oModel.resetChanges(); // Reverte as criações que falharam
+            }
         });
     }
 
@@ -190,28 +218,6 @@ export default class Roles extends Controller {
                     oModel.remove(sPath, {
                         success: () => MessageToast.show("Role removed."),
                         error: (oError: any) => MessageBox.error("Error removing role.")
-                    });
-                }
-            }
-        });
-    }
-
-    public onDeleteRoleCollectionPress(oEvent: UI5Event): void {
-        const oButton = oEvent.getSource() as Button;
-        const oContext = oButton.getBindingContext();
-        if (!oContext) return;
-
-        const sPath = oContext.getPath();
-        const sName = oContext.getProperty("name") as string;
-        const oModel = this.getView()?.getModel() as ODataModel;
-
-        MessageBox.confirm(`Tem a certeza que quer apagar a Role Collection "${sName}"?`, {
-            title: "Confirmar Exclusão",
-            onClose: (sAction: string) => {
-                if (sAction === MessageBox.Action.OK && oModel) {
-                    oModel.remove(sPath, {
-                        success: () => MessageToast.show("Role Collection apagada com sucesso."),
-                        error: (oError: any) => MessageBox.error("Erro ao apagar a Role Collection.")
                     });
                 }
             }
