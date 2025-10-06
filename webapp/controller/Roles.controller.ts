@@ -10,18 +10,13 @@ import Page from "sap/m/Page";
 import UI5Event from "sap/ui/base/Event";
 import Fragment from "sap/ui/core/Fragment";
 import Dialog from "sap/m/Dialog";
-import TableSelectDialog from "sap/m/TableSelectDialog";
-import Context from "sap/ui/model/Context";
-import Table from "sap/m/Table";
 import Button from "sap/m/Button";
 
 /**
  * @namespace com.alfa.cockpit.controller
  */
 export default class Roles extends Controller {
-
-    private _oCreateRoleCollectionDialog: Dialog;
-    private _oAddRoleDialog: TableSelectDialog;
+    private _oCreateDialog: Dialog;
 
     public onInit(): void {
         const oView = this.getView();
@@ -32,15 +27,10 @@ export default class Roles extends Controller {
     }
 
     public onListItemPress(oEvent: UI5Event): void {
-        const oItem = oEvent.getSource() as ListItemBase;
-        const sPath = oItem.getBindingContext()?.getPath();
+        const sPath = (oEvent.getSource() as ListItemBase).getBindingContext()?.getPath();
         if (sPath) {
-            const oDetailColumn = this.byId("roleCollectionDetail") as Page;
-            if (oDetailColumn) {
-                oDetailColumn.bindElement({ path: sPath, parameters: { expand: "navRoles/role" } });
-                const oFCL = this.byId("fcl") as FlexibleColumnLayout;
-                oFCL.setLayout(LayoutType.TwoColumnsMidExpanded);
-            }
+            (this.byId("roleDetail") as Page)?.bindElement({ path: sPath });
+            (this.byId("fcl") as FlexibleColumnLayout).setLayout(LayoutType.TwoColumnsMidExpanded);
         }
     }
 
@@ -67,41 +57,37 @@ export default class Roles extends Controller {
     public onSavePress(): void {
         const oView = this.getView();
         if (!oView) return;
-
         const oModel = oView.getModel() as ODataModel;
         if (oModel.hasPendingChanges()) {
             oModel.submitChanges({
                 success: () => {
-                    MessageToast.show("Role Collection guardada com sucesso.");
+                    MessageToast.show("Role saved.");
                     (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
                 },
-                error: (oError: any) => MessageBox.error("Falha ao guardar as alterações.")
+                error: () => MessageBox.error("Failed to save changes.")
             });
         } else {
-            MessageToast.show("Nenhuma alteração para guardar.");
+            MessageToast.show("No changes to save.");
             (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
         }
     }
 
-    public onDeleteRoleCollectionPress(oEvent: UI5Event): void {
-        const oButton = oEvent.getSource() as Button;
-        const oContext = oButton.getBindingContext();
+    public onDeletePress(oEvent: UI5Event): void {
+        const oContext = (oEvent.getSource() as Button).getBindingContext();
         if (!oContext) return;
-
         const sPath = oContext.getPath();
         const sName = oContext.getProperty("name") as string;
         const oModel = this.getView()?.getModel() as ODataModel;
 
-        MessageBox.confirm(`Tem a certeza que quer apagar a Role Collection "${sName}"?`, {
-            title: "Confirmar Exclusão",
+        MessageBox.confirm(`Are you sure you want to delete the Role "${sName}"?`, {
             onClose: (sAction: string) => {
                 if (sAction === MessageBox.Action.OK && oModel) {
                     oModel.remove(sPath, {
                         success: () => {
-                            MessageToast.show("Role Collection apagada com sucesso.");
-                            this.onCloseDetail(); // Fecha o detalhe, já que o item não existe mais
+                            MessageToast.show("Role deleted.");
+                            this.onCloseDetail();
                         },
-                        error: (oError: any) => MessageBox.error("Erro ao apagar a Role Collection.")
+                        error: () => MessageBox.error("Error deleting role.")
                     });
                 }
             }
@@ -111,114 +97,37 @@ export default class Roles extends Controller {
     public async onCreatePress(): Promise<void> {
         const oView = this.getView();
         if (!oView) return;
-
-        if (!this._oCreateRoleCollectionDialog) {
-            this._oCreateRoleCollectionDialog = await Fragment.load({
+        if (!this._oCreateDialog) {
+            this._oCreateDialog = await Fragment.load({
                 id: oView.getId(),
-                name: "com.alfa.cockpit.view.fragment.CreateRoleCollectionDialog",
+                name: "com.alfa.cockpit.view.fragment.CreateRoleDialog",
                 controller: this
             }) as Dialog;
-            oView.addDependent(this._oCreateRoleCollectionDialog);
+            oView.addDependent(this._oCreateDialog);
         }
-        this._oCreateRoleCollectionDialog.setModel(new JSONModel({ name: "", description: "" }), "newRoleCollection");
-        this._oCreateRoleCollectionDialog.open();
+        this._oCreateDialog.setModel(new JSONModel({ name: "", description: "" }), "newRole");
+        this._oCreateDialog.open();
     }
 
-    public onSaveNewRoleCollection(): void {
+    public onSaveNewRole(): void {
         const oModel = this.getView()?.getModel() as ODataModel;
-        const oNewData = (this._oCreateRoleCollectionDialog.getModel("newRoleCollection") as JSONModel).getData();
-
+        const oNewData = (this._oCreateDialog.getModel("newRole") as JSONModel).getData();
         if (!oNewData.name || !oNewData.description) {
             MessageToast.show("Please fill all fields.");
             return;
         }
-
         if(oModel){
-            oModel.create("/RoleCollections", oNewData, {
+            oModel.create("/Roles", oNewData, {
                 success: () => {
-                    MessageToast.show("Role Collection created successfully.");
-                    this.onCancelNewRoleCollection();
+                    MessageToast.show("Role created successfully.");
+                    this.onCancelNewRole();
                 },
-                error: (oError: any) => MessageBox.error("Error creating Role Collection.")
+                error: () => MessageBox.error("Error creating Role.")
             });
         }
     }
 
-    public onCancelNewRoleCollection(): void {
-        this._oCreateRoleCollectionDialog.close();
-    }
-
-    public async onAddRolePress(): Promise<void> {
-        const oView = this.getView();
-        if (!oView) return;
-
-        if (!this._oAddRoleDialog) {
-            this._oAddRoleDialog = await Fragment.load({
-                id: oView.getId(),
-                name: "com.alfa.cockpit.view.fragment.AddRoleDialog",
-                controller: this
-            }) as TableSelectDialog;
-            oView.addDependent(this._oAddRoleDialog);
-        }
-        this._oAddRoleDialog.open("");
-    }
-
-    public onAddRoleDialogConfirm(oEvent: any): void {
-        const oView = this.getView();
-        if (!oView) return;
-
-        const oModel = oView.getModel() as ODataModel;
-        const aSelectedContexts = oEvent.getParameter("selectedContexts") as Context[];
-        const oDetailContext = (this.byId("roleCollectionDetail") as Page).getBindingContext();
-
-        if (aSelectedContexts.length === 0 || !oDetailContext) {
-            return;
-        }
-
-        const sRoleCollectionID = oDetailContext.getProperty("ID") as string;
-
-        aSelectedContexts.forEach(oContext => {
-            const sRoleID = oContext.getProperty("ID") as string;
-            const oPayload = {
-                roleCollection_ID: sRoleCollectionID,
-                role_ID: sRoleID
-            };
-            oModel.create("/RoleCollectionRoles", oPayload);
-        });
-
-        oModel.submitChanges({
-            success: () => {
-                MessageToast.show(`${aSelectedContexts.length} role(s) added.`);
-
-                (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
-
-            },
-            error: (oError: any) => {
-                MessageBox.error("Error adding roles.");
-                oModel.resetChanges(); // Reverte as criações que falharam
-            }
-        });
-    }
-
-    public onAddRoleDialogCancel(): void {}
-
-    public onRemoveRolePress(oEvent: UI5Event): void {
-        const oContext = (oEvent.getSource() as ListItemBase).getBindingContext();
-        if (!oContext) return;
-
-        const sPath = oContext.getPath();
-        const sRoleName = oContext.getProperty("role/name") as string;
-        const oModel = this.getView()?.getModel() as ODataModel;
-
-        MessageBox.confirm(`Are you sure you want to remove the role "${sRoleName}" from this collection?`, {
-            onClose: (sAction: string) => {
-                if (sAction === MessageBox.Action.OK && oModel) {
-                    oModel.remove(sPath, {
-                        success: () => MessageToast.show("Role removed."),
-                        error: (oError: any) => MessageBox.error("Error removing role.")
-                    });
-                }
-            }
-        });
+    public onCancelNewRole(): void {
+        this._oCreateDialog.close();
     }
 }

@@ -59,6 +59,11 @@
           "name": "roles",
           "pattern": "roles",
           "target": "roles"
+        },
+        {
+          "name": "rolesCollections",
+          "pattern": "rolesCollections",
+          "target": "rolesCollections"
         }
       ],
       "targets": {
@@ -72,6 +77,10 @@
         },
         "roles": {
           "viewName": "Roles",
+          "viewLevel": 2
+        },
+        "rolesCollections": {
+          "viewName": "RolesCollections",
           "viewLevel": 2
         }
       }

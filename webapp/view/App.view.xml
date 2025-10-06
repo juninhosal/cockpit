@@ -23,6 +23,7 @@
                     <tnt:NavigationListItem text="Security" icon="sap-icon://shield" key="security_root" expanded="false">
                         <tnt:NavigationListItem text="Users" key="users" />
                         <tnt:NavigationListItem text="Roles" key="roles" />
+                        <tnt:NavigationListItem text="Roles Collections" key="rolesCollections" />
                     </tnt:NavigationListItem>
                 </tnt:NavigationList>
             </tnt:SideNavigation>

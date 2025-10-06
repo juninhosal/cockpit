@@ -1,0 +1,100 @@
+<mvc:View
+        controllerName="com.alfa.cockpit.controller.RolesCollections"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns:f="sap.f"
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:form="sap.ui.layout.form">
+
+    <f:FlexibleColumnLayout id="fcl" layout="{appView>/layout}">
+
+        <f:beginColumnPages>
+            <Page title="Role Collections">
+                <content>
+                    <Table id="roleCollectionsTable" items="{/RoleCollections}">
+                        <headerToolbar>
+                            <OverflowToolbar>
+                                <Title text="Role Collections"/>
+                                <ToolbarSpacer/>
+                                <Button text="Create" type="Transparent" press=".onCreatePress"/>
+                            </OverflowToolbar>
+                        </headerToolbar>
+                        <columns>
+                            <Column><Text text="Name"/></Column>
+                            <Column><Text text="Description"/></Column>
+                            <Column hAlign="End"><Text text="Actions"/></Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem type="Navigation" press=".onListItemPress">
+                                <cells>
+                                    <Text text="{name}"/>
+                                    <Text text="{description}"/>
+                                    <Button
+                                            icon="sap-icon://delete"
+                                            type="Transparent"
+                                            press=".onDeleteRoleCollectionPress" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Page>
+        </f:beginColumnPages>
+
+        <f:midColumnPages>
+            <Page id="roleCollectionDetail" title="{name}">
+                <headerContent>
+                    <Button icon="sap-icon://edit" text="Edit" type="Transparent" press=".onEditPress" visible="{= !${viewModel>/editMode}}"/>
+                    <Button text="Save" type="Emphasized" press=".onSavePress" visible="{= ${viewModel>/editMode}}"/>
+                    <Button text="Cancel" press=".onCancelPress" visible="{= ${viewModel>/editMode}}"/>
+                    <ToolbarSpacer/>
+                    <Button
+                            icon="{= ${appView>/layout} === 'MidColumnFullScreen' ? 'sap-icon://exit-full-screen' : 'sap-icon://full-screen' }"
+                            press=".onToggleFullScreen"/>
+                    <Button icon="sap-icon://decline" press=".onCloseDetail"/>
+                </headerContent>
+                <content>
+                    <IconTabBar class="sapUiResponsiveContentPadding">
+                        <items>
+                            <IconTabFilter text="General">
+                                <form:SimpleForm editable="true" layout="ResponsiveGridLayout">
+                                    <Label text="Name"/>
+                                    <Text text="{name}" visible="{= !${viewModel>/editMode}}"/>
+                                    <Input value="{mode: 'TwoWay', path: 'name'}" visible="{= ${viewModel>/editMode}}"/>
+
+                                    <Label text="Description"/>
+                                    <Text text="{description}" visible="{= !${viewModel>/editMode}}"/>
+                                    <Input value="{mode: 'TwoWay', path: 'description'}" visible="{= ${viewModel>/editMode}}"/>
+                                </form:SimpleForm>
+                            </IconTabFilter>
+                            <IconTabFilter text="Roles">
+                                <Table id="assignedRolesTable" items="{navRoles}">
+                                    <headerToolbar>
+                                        <OverflowToolbar>
+                                            <Title text="Assigned Roles"/>
+                                            <ToolbarSpacer/>
+                                            <Button text="Add Role" press=".onAddRolePress"/>
+                                        </OverflowToolbar>
+                                    </headerToolbar>
+                                    <columns>
+                                        <Column><Text text="Role Name"/></Column>
+                                        <Column hAlign="End"/>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{role/name}"/>
+                                                <Button icon="sap-icon://delete" type="Transparent" press=".onRemoveRolePress"/>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </IconTabFilter>
+                        </items>
+                    </IconTabBar>
+                </content>
+            </Page>
+        </f:midColumnPages>
+
+    </f:FlexibleColumnLayout>
+</mvc:View>

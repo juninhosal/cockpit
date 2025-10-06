@@ -1,0 +1,21 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:form="sap.ui.layout.form">
+    <Dialog id="createRoleDialog" title="Create Role">
+        <content>
+            <form:SimpleForm editable="true">
+                <Label text="Name" required="true"/>
+                <Input value="{newRole>/name}"/>
+                <Label text="Description" required="true"/>
+                <Input value="{newRole>/description}"/>
+            </form:SimpleForm>
+        </content>
+        <beginButton>
+            <Button text="Save" type="Emphasized" press=".onSaveNewRole"/>
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press=".onCancelNewRole"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
