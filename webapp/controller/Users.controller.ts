@@ -21,6 +21,7 @@ import Dialog from "sap/m/Dialog";
 import Context from "sap/ui/model/Context";
 import formatter from "../model/formatter";
 import TableSelectDialog from "sap/m/TableSelectDialog";
+import Api from "../model/Api";
 
 /**
  * @namespace com.alfa.cockpit.controller
@@ -36,16 +37,16 @@ export default class Users extends Controller {
     private _oCreateUserDialog: Dialog;
     private _mSortState: { [key: string]: boolean | null } = {};
     private _oAssignRoleCollectionDialog: TableSelectDialog;
+    private _api: Api;
 
     /**
      * @public
      * @override
      * @name onInit
-     * @description Inicializa o controller, configurando modelos para a vista.
-     * `appView` model: para controlar o layout do FlexibleColumnLayout.
-     * `viewModel`: para controlar o estado da UI (ex: modo de edição).
+     * @description Inicializa o controller, configurando modelos para a vista e a classe de API.
      */
     public onInit(): void {
+        this._api = new Api(this);
         const oView = this.getView();
         if (oView) {
             oView.setModel(new JSONModel({ layout: LayoutType.OneColumn }), "appView");
@@ -57,7 +58,6 @@ export default class Users extends Controller {
      * @public
      * @name onListItemPress
      * @description Manipula o clique num item da lista de utilizadores.
-     * Navega para a vista de detalhe do utilizador, mostrando a segunda coluna.
      * @param {sap.ui.base.Event} oEvent O evento de clique.
      */
     public onListItemPress(oEvent: UI5Event): void {
@@ -73,7 +73,6 @@ export default class Users extends Controller {
 
             const oDetailColumn = this.byId("userDetail") as Page;
             if (oDetailColumn) {
-                // Faz o binding do elemento e expande a navegação para as role collections associadas
                 oDetailColumn.bindElement({path: sPath, parameters: { expand: "navRoleCollections/roleCollection" }});
                 const oFCL = this.byId("fcl") as FlexibleColumnLayout;
                 oFCL.setLayout(LayoutType.TwoColumnsMidExpanded);
@@ -97,10 +96,7 @@ export default class Users extends Controller {
      * @description Alterna a vista de detalhe entre ecrã inteiro e modo de duas colunas.
      */
     public onToggleFullScreen(): void {
-        const oView = this.getView();
-        if (!oView) return;
-
-        const oModel = oView.getModel("appView") as JSONModel;
+        const oModel = this.getView()?.getModel("appView") as JSONModel;
         const sCurrentLayout = oModel.getProperty("/layout") as string;
 
         if (sCurrentLayout === LayoutType.MidColumnFullScreen) {
@@ -144,17 +140,16 @@ export default class Users extends Controller {
     /**
      * @public
      * @name onSavePress
-     * @description Guarda as alterações feitas ao utilizador.
+     * @description Guarda as alterações feitas ao utilizador utilizando a classe Api.
      */
     public onSavePress(): void {
         const oView = this.getView();
         if (!oView) return;
 
-        const oModel = oView.getModel() as ODataModel;
         const oViewModel = oView.getModel("viewModel") as JSONModel;
         const oContext = (this.byId("userDetail") as Page)?.getBindingContext();
+        const oModel = oView.getModel() as ODataModel;
 
-        // Atualiza o campo 'status' com base no switch
         if (oContext) {
             const sPath = oContext.getPath();
             const bStatus = oViewModel.getProperty("/editStatus");
@@ -162,105 +157,72 @@ export default class Users extends Controller {
             oModel.setProperty(sPath + "/status", sStatusValue);
         }
 
-        if (oModel.hasPendingChanges()) {
-            oModel.submitChanges({
-                success: () => {
-                    MessageToast.show("Usuário atualizado com sucesso.");
-                    oViewModel.setProperty("/editMode", false);
-                },
-                error: (oError: any) => MessageBox.error("Erro ao atualizar usuário.")
-            });
-        } else {
-            MessageToast.show("Nenhuma alteração para salvar.");
+        this._api.submitChanges(
+            "Usuário atualizado com sucesso.",
+            "Erro ao atualizar usuário."
+        ).then(() => {
             oViewModel.setProperty("/editMode", false);
-        }
+        }).catch((oError) => {
+            console.error(oError);
+        });
     }
 
     /**
      * @public
      * @name onFilterUsers
-     * @description Filtra a lista de utilizadores com base no texto introduzido no campo de pesquisa.
+     * @description Filtra a lista de utilizadores com base no texto introduzido.
      * @param {sap.ui.base.Event} oEvent O evento de pesquisa.
      */
     public onFilterUsers(oEvent: UI5Event): void {
-        const aFilters: Filter[] = [];
         const sQuery = (oEvent.getSource() as SearchField).getValue();
-        const oTable = this.byId("usersTable") as Table;
-        const oBinding = oTable.getBinding("items") as ListBinding;
+        const oBinding = (this.byId("usersTable") as Table).getBinding("items") as ListBinding;
 
-        if (sQuery && sQuery.length > 0) {
-            // Filtro combinado para procurar em 'name' e 'email'
-            const oCombinedFilter = new Filter({
-                filters: [
-                    new Filter("name", FilterOperator.Contains, sQuery),
-                    new Filter("email", FilterOperator.Contains, sQuery)
-                ],
-                and: false // Operador OR
-            });
-            aFilters.push(oCombinedFilter);
-        }
+        const aFilters = sQuery ? [new Filter({
+            filters: [
+                new Filter("name", FilterOperator.Contains, sQuery),
+                new Filter("email", FilterOperator.Contains, sQuery)
+            ],
+            and: false
+        })] : [];
 
-        if (oBinding) {
-            oBinding.filter(aFilters);
-        }
+        oBinding.filter(aFilters);
     }
 
     /**
      * @public
      * @name onSort
-     * @description Ordena a lista de utilizadores. A direção da ordenação (ascendente/descendente) é alternada a cada clique.
+     * @description Ordena a lista de utilizadores.
      * @param {sap.ui.base.Event} oEvent O evento de clique no botão de ordenação.
      */
     public onSort(oEvent: UI5Event): void {
-        const oButton = oEvent.getSource() as Button;
-        const sSortProperty = oButton.data("sortProperty") as string;
-        const oTable = this.byId("usersTable") as Table;
-        const oBinding = oTable.getBinding("items") as ListBinding;
+        const sSortProperty = (oEvent.getSource() as Button).data("sortProperty") as string;
+        const oBinding = (this.byId("usersTable") as Table).getBinding("items") as ListBinding;
 
-        // Mantém o estado da ordenação para alternar a direção
-        const bCurrentSortDirection = this._mSortState[sSortProperty];
-        let bDescending: boolean;
+        const bDescending = !this._mSortState[sSortProperty];
+        this._mSortState = { [sSortProperty]: bDescending };
 
-        if (bCurrentSortDirection === null || bCurrentSortDirection === undefined) {
-            bDescending = false; // Primeira vez: ascendente
-        } else {
-            bDescending = !bCurrentSortDirection; // Alterna
-        }
-
-        this._mSortState = {}; // Reseta o estado para outras colunas
-        this._mSortState[sSortProperty] = bDescending;
-        const oSorter = new Sorter(sSortProperty, bDescending);
-
-        if (oBinding) oBinding.sort(oSorter);
+        oBinding.sort(new Sorter(sSortProperty, bDescending));
     }
 
     /**
      * @public
      * @name onDeleteUserPress
-     * @description Apaga um utilizador após confirmação.
+     * @description Apaga um utilizador após confirmação, utilizando a classe Api.
      * @param {sap.ui.base.Event} oEvent O evento de clique no botão de apagar.
      */
     public onDeleteUserPress(oEvent: UI5Event): void {
-        const oButton = oEvent.getSource() as Button;
-        const oContext = oButton.getBindingContext();
+        const oContext = (oEvent.getSource() as Button).getBindingContext();
         if (!oContext) return;
 
         const sPath = oContext.getPath();
         const sUserName = oContext.getProperty("name") as string;
 
-        const oView = this.getView();
-        if (!oView) return;
-
-        const oModel = oView.getModel() as ODataModel;
-
         MessageBox.confirm(`Tem a certeza que quer apagar o usuário "${sUserName}"?`, {
             title: "Confirmar Exclusão",
             onClose: (sAction: string) => {
                 if (sAction === MessageBox.Action.OK) {
-                    oModel.remove(sPath, {
-                        success: () => MessageToast.show("Usuário apagado com sucesso."),
-                        error: (oError: any) => MessageBox.error("Erro ao apagar usuário.")
-                    });
+                    this._api.remove(sPath, "Usuário apagado com sucesso.", "Erro ao apagar usuário.")
+                        .catch(oError => console.error(oError));
                 }
             }
         });
@@ -273,11 +235,8 @@ export default class Users extends Controller {
      */
     public async onCreatePress(): Promise<void> {
         const oView = this.getView();
-        if (!oView) {
-            return;
-        }
+        if (!oView) return;
 
-        // Carrega o fragmento do diálogo na primeira vez
         if (!this._oCreateUserDialog) {
             this._oCreateUserDialog = await Fragment.load({
                 id: oView.getId(),
@@ -286,7 +245,6 @@ export default class Users extends Controller {
             }) as Dialog;
             oView.addDependent(this._oCreateUserDialog);
         }
-        // Inicializa o modelo para o novo utilizador
         this._oCreateUserDialog.setModel(new JSONModel({ name: "", email: "", status: "enable" }), "newUser");
         this._oCreateUserDialog.open();
     }
@@ -294,28 +252,19 @@ export default class Users extends Controller {
     /**
      * @public
      * @name onSaveUser
-     * @description Guarda o novo utilizador criado no diálogo.
+     * @description Guarda o novo utilizador utilizando a classe Api.
      */
     public onSaveUser(): void {
         const oNewUserData = (this._oCreateUserDialog.getModel("newUser") as JSONModel).getData();
-
-        const oView = this.getView();
-        if (!oView) return;
-
-        const oODataModel = oView.getModel() as ODataModel;
 
         if (!oNewUserData.name || !oNewUserData.email) {
             MessageToast.show("Por favor, preencha todos os campos obrigatórios.");
             return;
         }
 
-        oODataModel.create("/Users", oNewUserData, {
-            success: () => {
-                MessageToast.show("Usuário criado com sucesso.");
-                this.onCancelCreate();
-            },
-            error: (oError: any) => MessageBox.error("Erro ao criar usuário.")
-        });
+        this._api.create("/Users", oNewUserData, "Usuário criado com sucesso.", "Erro ao criar usuário.")
+            .then(() => this.onCancelCreate())
+            .catch(oError => console.error(oError));
     }
 
     /**
@@ -330,13 +279,12 @@ export default class Users extends Controller {
     /**
      * @public
      * @name onAssignRoleCollectionPress
-     * @description Abre um diálogo de seleção para atribuir Role Collections ao utilizador.
+     * @description Abre um diálogo para atribuir Role Collections.
      */
     public async onAssignRoleCollectionPress(): Promise<void> {
         const oView = this.getView();
         if (!oView) return;
 
-        // Carrega o fragmento do diálogo na primeira vez
         if (!this._oAssignRoleCollectionDialog) {
             this._oAssignRoleCollectionDialog = await Fragment.load({
                 id: oView.getId(),
@@ -351,9 +299,8 @@ export default class Users extends Controller {
     /**
      * @public
      * @name onAssignRoleCollectionDialogConfirm
-     * @description Manipula a confirmação do diálogo de atribuição.
-     * Cria as associações entre o utilizador e as Role Collections selecionadas.
-     * @param {any} oEvent O evento de confirmação do diálogo.
+     * @description Cria as associações entre o utilizador e as Role Collections, usando a classe Api.
+     * @param {any} oEvent O evento de confirmação.
      */
     public onAssignRoleCollectionDialogConfirm(oEvent: any): void {
         const oView = this.getView();
@@ -363,63 +310,47 @@ export default class Users extends Controller {
         const aSelectedContexts = oEvent.getParameter("selectedContexts") as Context[];
         const oUserDetailContext = (this.byId("userDetail") as Page).getBindingContext();
 
-        if (aSelectedContexts.length === 0 || !oUserDetailContext) {
-            return;
-        }
+        if (!aSelectedContexts.length || !oUserDetailContext) return;
 
         const sUserID = oUserDetailContext.getProperty("ID") as string;
 
-        // Cria uma entrada na entidade de associação para cada Role Collection selecionada
         aSelectedContexts.forEach(oContext => {
             const sRoleCollectionID = oContext.getProperty("ID") as string;
-            const oPayload = {
-                user_ID: sUserID,
-                roleCollection_ID: sRoleCollectionID
-            };
-            oModel.create("/UserRoleCollections", oPayload);
+            oModel.create("/UserRoleCollections", { user_ID: sUserID, roleCollection_ID: sRoleCollectionID });
         });
 
-        // Submete todas as criações como um batch
-        oModel.submitChanges({
-            success: () => {
-                MessageToast.show("Role Collection(s) atribuída(s).");
-                // Refresca o binding do detalhe para mostrar a nova atribuição
-                (this.byId("userDetail") as Page).getElementBinding()?.refresh();
-            },
-            error: (oError: any) => {
-                MessageBox.error("Erro ao atribuir a(s) Role Collection(s).");
-                oModel.resetChanges(); // Reverte as criações em caso de erro
-            }
-        });
+        this._api.submitChanges(
+            "Role Collection(s) atribuída(s).",
+            "Erro ao atribuir a(s) Role Collection(s)."
+        ).then(() => {
+            (this.byId("userDetail") as Page).getElementBinding()?.refresh();
+        }).catch(oError => console.error(oError));
     }
 
     /**
      * @public
      * @name onAssignRoleCollectionDialogCancel
-     * @description Manipula o cancelamento do diálogo de atribuição. (Atualmente vazio)
+     * @description Manipula o cancelamento do diálogo de atribuição.
      */
     public onAssignRoleCollectionDialogCancel(): void {}
 
     /**
      * @public
      * @name onUnassignRoleCollectionPress
-     * @description Remove a atribuição de uma Role Collection de um utilizador.
-     * @param {sap.ui.base.Event} oEvent O evento de clique no item da lista.
+     * @description Remove a atribuição de uma Role Collection, usando a classe Api.
+     * @param {sap.ui.base.Event} oEvent O evento de clique.
      */
     public onUnassignRoleCollectionPress(oEvent: UI5Event): void {
         const oContext = (oEvent.getSource() as ListItemBase).getBindingContext();
         if (!oContext) return;
 
         const sPath = oContext.getPath();
-        const oModel = this.getView()?.getModel() as ODataModel;
 
         MessageBox.confirm("Tem a certeza que quer desatribuir esta Role Collection?", {
             onClose: (sAction: string) => {
-                if (sAction === MessageBox.Action.OK && oModel) {
-                    oModel.remove(sPath, {
-                        success: () => MessageToast.show("Atribuição removida."),
-                        error: (oError: any) => MessageBox.error("Erro ao remover a atribuição.")
-                    });
+                if (sAction === MessageBox.Action.OK) {
+                    this._api.remove(sPath, "Atribuição removida.", "Erro ao remover a atribuição.")
+                        .catch(oError => console.error(oError));
                 }
             }
         });

@@ -12,8 +12,8 @@ import Fragment from "sap/ui/core/Fragment";
 import Dialog from "sap/m/Dialog";
 import TableSelectDialog from "sap/m/TableSelectDialog";
 import Context from "sap/ui/model/Context";
-import Table from "sap/m/Table";
 import Button from "sap/m/Button";
+import Api from "../model/Api";
 
 /**
  * @namespace com.alfa.cockpit.controller
@@ -25,14 +25,16 @@ export default class RolesCollections extends Controller {
 
     private _oCreateRoleCollectionDialog: Dialog;
     private _oAddRoleDialog: TableSelectDialog;
+    private _api: Api;
 
     /**
      * @public
      * @override
      * @name onInit
-     * @description Inicializa o controller, configurando os modelos da view para layout e estado de edição.
+     * @description Inicializa o controller, configurando os modelos da view e a classe de API.
      */
     public onInit(): void {
+        this._api = new Api(this);
         const oView = this.getView();
         if (oView) {
             oView.setModel(new JSONModel({ layout: LayoutType.OneColumn }), "appView");
@@ -52,10 +54,8 @@ export default class RolesCollections extends Controller {
         if (sPath) {
             const oDetailColumn = this.byId("roleCollectionDetail") as Page;
             if (oDetailColumn) {
-                // Faz o binding do detalhe e expande a navegação para as roles associadas
                 oDetailColumn.bindElement({ path: sPath, parameters: { expand: "navRoles/role" } });
-                const oFCL = this.byId("fcl") as FlexibleColumnLayout;
-                oFCL.setLayout(LayoutType.TwoColumnsMidExpanded);
+                (this.byId("fcl") as FlexibleColumnLayout).setLayout(LayoutType.TwoColumnsMidExpanded);
             }
         }
     }
@@ -103,53 +103,36 @@ export default class RolesCollections extends Controller {
     /**
      * @public
      * @name onSavePress
-     * @description Guarda as alterações feitas na Role Collection.
+     * @description Guarda as alterações feitas na Role Collection, usando a classe Api.
      */
     public onSavePress(): void {
-        const oView = this.getView();
-        if (!oView) return;
-
-        const oModel = oView.getModel() as ODataModel;
-        if (oModel.hasPendingChanges()) {
-            oModel.submitChanges({
-                success: () => {
-                    MessageToast.show("Role Collection salva com sucesso.");
-                    (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
-                },
-                error: (oError: any) => MessageBox.error("Falha ao salvar as alterações.")
-            });
-        } else {
-            MessageToast.show("Nenhuma alteração para salvar.");
-            (oView.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
-        }
+        this._api.submitChanges("Role Collection salva com sucesso.", "Falha ao salvar as alterações.")
+            .then(() => {
+                (this.getView()?.getModel("viewModel") as JSONModel)?.setProperty("/editMode", false);
+            })
+            .catch(oError => console.error(oError));
     }
 
     /**
      * @public
      * @name onDeleteRoleCollectionPress
-     * @description Apaga a Role Collection selecionada após confirmação.
+     * @description Apaga a Role Collection selecionada após confirmação, usando a classe Api.
      * @param {sap.ui.base.Event} oEvent O evento de clique.
      */
     public onDeleteRoleCollectionPress(oEvent: UI5Event): void {
-        const oButton = oEvent.getSource() as Button;
-        const oContext = oButton.getBindingContext();
+        const oContext = (oEvent.getSource() as Button).getBindingContext();
         if (!oContext) return;
 
         const sPath = oContext.getPath();
         const sName = oContext.getProperty("name") as string;
-        const oModel = this.getView()?.getModel() as ODataModel;
 
         MessageBox.confirm(`Tem a certeza que quer apagar a Role Collection "${sName}"?`, {
             title: "Confirmar Exclusão",
             onClose: (sAction: string) => {
-                if (sAction === MessageBox.Action.OK && oModel) {
-                    oModel.remove(sPath, {
-                        success: () => {
-                            MessageToast.show("Role Collection apagada com sucesso.");
-                            this.onCloseDetail(); // Fecha o detalhe, já que o item não existe mais
-                        },
-                        error: (oError: any) => MessageBox.error("Erro ao apagar a Role Collection.")
-                    });
+                if (sAction === MessageBox.Action.OK) {
+                    this._api.remove(sPath, "Role Collection apagada com sucesso.", "Erro ao apagar a Role Collection.")
+                        .then(() => this.onCloseDetail())
+                        .catch(oError => console.error(oError));
                 }
             }
         });
@@ -179,10 +162,9 @@ export default class RolesCollections extends Controller {
     /**
      * @public
      * @name onSaveNewRoleCollection
-     * @description Guarda a nova Role Collection criada no diálogo.
+     * @description Guarda a nova Role Collection criada, usando a classe Api.
      */
     public onSaveNewRoleCollection(): void {
-        const oModel = this.getView()?.getModel() as ODataModel;
         const oNewData = (this._oCreateRoleCollectionDialog.getModel("newRoleCollection") as JSONModel).getData();
 
         if (!oNewData.name || !oNewData.description) {
@@ -190,15 +172,9 @@ export default class RolesCollections extends Controller {
             return;
         }
 
-        if(oModel){
-            oModel.create("/RoleCollections", oNewData, {
-                success: () => {
-                    MessageToast.show("Role Collection criada com sucesso.");
-                    this.onCancelNewRoleCollection();
-                },
-                error: (oError: any) => MessageBox.error("Erro ao criar a Role Collection.")
-            });
-        }
+        this._api.create("/RoleCollections", oNewData, "Role Collection criada com sucesso.", "Erro ao criar a Role Collection.")
+            .then(() => this.onCancelNewRoleCollection())
+            .catch(oError => console.error(oError));
     }
 
     /**
@@ -213,7 +189,7 @@ export default class RolesCollections extends Controller {
     /**
      * @public
      * @name onAddRolePress
-     * @description Abre um diálogo para adicionar Roles existentes a uma Role Collection.
+     * @description Abre um diálogo para adicionar Roles a uma Role Collection.
      */
     public async onAddRolePress(): Promise<void> {
         const oView = this.getView();
@@ -233,8 +209,8 @@ export default class RolesCollections extends Controller {
     /**
      * @public
      * @name onAddRoleDialogConfirm
-     * @description Confirma a adição de Roles a uma Role Collection. Cria as associações.
-     * @param {any} oEvent O evento de confirmação do diálogo.
+     * @description Confirma a adição de Roles a uma Role Collection, usando a classe Api.
+     * @param {any} oEvent O evento de confirmação.
      */
     public onAddRoleDialogConfirm(oEvent: any): void {
         const oView = this.getView();
@@ -244,31 +220,21 @@ export default class RolesCollections extends Controller {
         const aSelectedContexts = oEvent.getParameter("selectedContexts") as Context[];
         const oDetailContext = (this.byId("roleCollectionDetail") as Page).getBindingContext();
 
-        if (aSelectedContexts.length === 0 || !oDetailContext) {
-            return;
-        }
+        if (aSelectedContexts.length === 0 || !oDetailContext) return;
 
         const sRoleCollectionID = oDetailContext.getProperty("ID") as string;
 
         aSelectedContexts.forEach(oContext => {
             const sRoleID = oContext.getProperty("ID") as string;
-            const oPayload = {
-                roleCollection_ID: sRoleCollectionID,
-                role_ID: sRoleID
-            };
-            oModel.create("/RoleCollectionRoles", oPayload);
+            oModel.create("/RoleCollectionRoles", { roleCollection_ID: sRoleCollectionID, role_ID: sRoleID });
         });
 
-        oModel.submitChanges({
-            success: () => {
-                MessageToast.show(`${aSelectedContexts.length} role(s) adicionados.`);
-                (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
-            },
-            error: (oError: any) => {
-                MessageBox.error("Erro ao adicionar roles.");
-                oModel.resetChanges(); // Reverte as criações que falharam
-            }
-        });
+        this._api.submitChanges(
+            `${aSelectedContexts.length} role(s) adicionados.`,
+            "Erro ao adicionar roles."
+        ).then(() => {
+            (this.byId("roleCollectionDetail") as Page).getElementBinding()?.refresh();
+        }).catch(oError => console.error(oError));
     }
 
     /**
@@ -281,7 +247,7 @@ export default class RolesCollections extends Controller {
     /**
      * @public
      * @name onRemoveRolePress
-     * @description Remove uma Role de uma Role Collection.
+     * @description Remove uma Role de uma Role Collection, usando a classe Api.
      * @param {sap.ui.base.Event} oEvent O evento de clique.
      */
     public onRemoveRolePress(oEvent: UI5Event): void {
@@ -290,15 +256,12 @@ export default class RolesCollections extends Controller {
 
         const sPath = oContext.getPath();
         const sRoleName = oContext.getProperty("role/name") as string;
-        const oModel = this.getView()?.getModel() as ODataModel;
 
         MessageBox.confirm(`Tem a certeza que quer remover a role "${sRoleName}" desta coleção?`, {
             onClose: (sAction: string) => {
-                if (sAction === MessageBox.Action.OK && oModel) {
-                    oModel.remove(sPath, {
-                        success: () => MessageToast.show("Role removida."),
-                        error: (oError: any) => MessageBox.error("Erro ao remover a role.")
-                    });
+                if (sAction === MessageBox.Action.OK) {
+                    this._api.remove(sPath, "Role removida.", "Erro ao remover a role.")
+                        .catch(oError => console.error(oError));
                 }
             }
         });
